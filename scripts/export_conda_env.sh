@@ -10,7 +10,7 @@ eval "$(conda shell.bash hook)"
 conda activate "$ENV_NAME"
 
 # Export the environment to YAML
-conda env export > environment.yml
+conda env export  --no-builds | grep -v "prefix" > environment.yml
 
 # Deactivate the conda environment
 conda deactivate
