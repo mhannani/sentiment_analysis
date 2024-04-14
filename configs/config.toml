@@ -1,9 +1,11 @@
 [data]
 root = "data"
-external = "external"
-interim = "interim"
-processed = "processed"
-raw = "raw"
+external = "external/MAC"
+interim = "interim/MAC"
+processed = "processed/MAC"
+raw = "raw/MAC"
+
+mac_csv_filename = "MAC_corpus.csv"
 
 [prompting]
 system_message = "Predict the class of this Moroccan Arabic Dialect review (e.g ternary classification), whether it's positive (return 1.0), neutral (return 0.0) or negative (return -1.0) review. Please do not return anything other than that."

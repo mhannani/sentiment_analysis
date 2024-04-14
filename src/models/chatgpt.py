@@ -75,7 +75,11 @@ class GPT:
         
         # postprocess the response
         if llm_output is not []:
-            predicted_class = llm_output['args']['pred']
+            try:
+                predicted_class = llm_output['args']['pred']
+            except (KeyError, TypeError) as e:
+                print(f"Error: {e}, llm_output: {llm_output}.")
+                predicted_class = None
         else:
             predicted_class = None
 
