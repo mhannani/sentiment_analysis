@@ -1,0 +1,1 @@
+pipdeptree --warn silence --freeze > requirements.txt

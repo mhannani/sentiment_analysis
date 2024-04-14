@@ -3,8 +3,9 @@ from pathlib import Path
 import os
 
 from src.utils.parsers import parse_toml
-from src.models.chatgpt import GPT
-from src.prompts.chatgpt import GPTPrompt
+from src.models.gemini import Gemini
+from src.prompts.gemini import GeminiPrompt
+
 
 if __name__ == "__main__":
     # Load environment variables from .env file
@@ -17,24 +18,15 @@ if __name__ == "__main__":
     config = parse_toml(toml_path)
 
     # openai_api_key
-    gemini_api_key: str = os.environ.get("GEMINI_API_KEY")
+    google_api_key: str = os.environ.get("GOOGLE_API_KEY")
 
-    import google.generativeai as genai
-    genai.configure(api_key="AIzaSyB6n7l4pUce16tFUzsIPzKZ3as2Pwaa-DU")
-    model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content("Write a story about a magic backpack.")
+    # gemini prompt
+    gemini_prompt = GeminiPrompt(config)
 
-    print(response)
-
-    # # create prompt
-    # gpt_prompt = GPTPrompt(config)
-
-    # # Instantiate GPT
-    # gpt = GPT(config, openai_api_key, gpt_prompt)
-
-    # output = gpt.predict("انا بعدا مقابلة البحر لا يرحل ")
-
-    # print(output)
-
-
-
+    # gemini model
+    gemini = Gemini(config, google_api_key, gemini_prompt)
+    
+    # make prediction
+    output = gemini.predict("انا بعدا مقابلة البحر لا يرحل ")
+    
+    print(output)

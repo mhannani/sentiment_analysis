@@ -1,7 +1,0 @@
-name: sentiment_analysis
-channels:
-  - defaults
-dependencies:
-  - python=3.11
-  - matplotlib
-  - seaborn
