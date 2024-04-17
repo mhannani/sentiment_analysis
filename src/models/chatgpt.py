@@ -5,6 +5,7 @@ from langchain.schema.messages import AIMessage
 from langchain_core.messages import BaseMessage
 from langchain_openai import ChatOpenAI
 from langchain.output_parsers.openai_tools import JsonOutputToolsParser
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from src.prompts.chatgpt import GPTPrompt
 from src.types.review_class import ReviewClass
@@ -58,6 +59,7 @@ class GPT:
         # Output Parser
         self.output_parser = JsonOutputToolsParser(key_name="ReviewClass", first_tool_only=True)
 
+    @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(6))
     def predict(self, request_sentence: str) -> AIMessage:
         """
         Prompt the GPT model using Chain-of-thoughts with Langchain

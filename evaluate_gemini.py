@@ -8,6 +8,7 @@ from src.prompts.gemini import GeminiPrompt
 
 
 if __name__ == "__main__":
+
     # Load environment variables from .env file
     load_dotenv()
 

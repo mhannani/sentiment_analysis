@@ -5,4 +5,4 @@ class ReviewClass(BaseModel):
     """Prediction of the user's comment, review or text in general"""
 
     # predicted class of the review/or comment
-    pred: float
+    pred: int # 0.0 1.0 -1.0 

@@ -1,40 +1,64 @@
-import re
+import pandas as pd
+
+from pathlib import Path
+from typing import List, Union
+
+from src.utils.converters import df_to_list
+from src.utils.readers import read_df
+from src.utils.cleaners import clean_df
+from src.utils.encoders import label_encode
+from src.utils.save import save_json
 
 
 class Preprocessor:
     """
-    Reviews or comments preprocessor
+    Reviews or comments preprocessor.
     """
 
-    def __init__(self):
+    def __init__(self, config: object, csv_path: Path, output_json_path: Path):
+        """Preprocessor class constructor
+
+        Args:
+            config (object): configuration object
+            csv_path (Path): csv file path
+            output_json_path (Path): json output path
         """
-        Class constructor
+        
+        # configuration object
+        self.config = config
+        
+        # raw csv file path
+        self.csv_path = csv_path
+
+        # preprocessed data json path
+        self.output_json_path = output_json_path
+
+    def preprocess(self) -> Union[pd.DataFrame]:
+        """preprocess the given csv file and return it as Dataframe.
+
+        Returns:
+            pd.DataFrame: Dataframe of cleand and preprocessed samples
         """
-    
-    def clean_text(self, text: str = None) -> str:
-        """
-        Clean the provided text
-        """
+        
+        # read the csv file
+        df: pd.DataFrame = read_df(self.csv_path)
+        
+        # cleand the dataframe
+        df: pd.DataFrame = clean_df(df)
+        
+        # map `class`columns classes
+        df: pd.DataFrame = label_encode(df)
 
-        if text is None:
-            return ""
+        return df
 
-        # Remove special characters and punctuations
-        text = re.sub(r"[^\w\s]", " ", text)
-
-        # Remove single characeters
-        text = re.sub(r"\b[a-zA-Z]\b", " ", text)
-
-        # Remove HTML tags
-        text = re.sub(r"<[^>]*>", " ", text)
-
-        # Lowercase the text
-        text = text.lower()
-
-        # Remove extra whitespaces
-        text = re.sub(r"\s+", " ", text)
-
-        # Trim leading and trailing spaces
-        text = text.strip()
-
-        return text
+    def preprocess_and_export(self) -> None:
+        """Preprocesses, cleans and store data in the interimediat format as json file."""
+        
+        # preprocess data
+        df: pd.DataFrame = self.preprocess()
+        
+        # dataframe to list
+        df_list = df_to_list(df)
+        
+        # save data processed
+        save_json(self.output_json_path, df_list)
