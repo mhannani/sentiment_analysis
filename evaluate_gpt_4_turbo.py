@@ -68,7 +68,7 @@ if __name__ == "__main__":
         csv_writer = csv.writer(csv_file, delimiter='\t')
 
         # loop through the samples
-        for sample in tqdm(json_data, desc="Processing samples", unit="sample", ncols=100):
+        for sample in tqdm(json_data[5152:], desc="Processing samples", unit="sample", ncols=100):
             
             # key
             key = sample['key']
