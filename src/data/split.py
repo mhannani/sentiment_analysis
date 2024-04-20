@@ -36,7 +36,7 @@ class DataSplitter:
         # Initialize StratifiedShuffleSplit
         self.stratified_splitter = StratifiedShuffleSplit(n_splits=1, test_size=train_test_or_val_size, random_state=42)
 
-    def split(self) -> Tuple[List]:
+    def split(self) -> Tuple[pd.DataFrame]:
         """Splits dataframe into train and test sets.
 
         Returns:
@@ -51,25 +51,25 @@ class DataSplitter:
         train_index, test_index = next(self.stratified_splitter.split(X, y))
 
         # Splitting the data based on the indices for features(X)
-        X_train = X.iloc[train_index].values.flatten().tolist()
-        X_test = X.iloc[test_index].values.flatten().tolist()
-        
+        X_train = X.iloc[train_index]
+        X_test = X.iloc[test_index]
+
         # Splitting the data based on the indices for target (y)
-        y_train = y.iloc[train_index].values.flatten().tolist()
-        y_test = y.iloc[test_index].values.flatten().tolist()
+        y_train = y.iloc[train_index]
+        y_test = y.iloc[test_index]
+        
+        # Combining X_train and y_train into train_df and X_test and y_test into test_df
+        train_df = pd.concat([X_train, y_train], axis=1)
+        test_df = pd.concat([X_test, y_test], axis=1)
     
-        return X_train, X_test, y_train, y_test
+        return train_df, test_df
 
     def split_and_save(self) -> None:
         """Splits dataset and save sets into disk. usually that for train and test sets."""
         
         # split data
-        X_train, X_test, y_train, y_test = self.split()
-        
-        # create DataFrames for train and test sets
-        train_df = pd.DataFrame({'tweets': X_train, 'type': y_train})
-        test_df = pd.DataFrame({'tweets': X_test, 'type': y_test})
-        
+        train_df, test_df = self.split()
+
         # train csv filename
         train_csv_filename = self.config['data']['train_csv_filename']
         
