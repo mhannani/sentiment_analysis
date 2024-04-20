@@ -21,6 +21,7 @@ if __name__ == "__main__":
     
     mac_csv_filename = config['data']['mac_csv_filename']
     preprocessed_mac_json = config['data']['preprocessed_mac_json']
+    preprocessed_mac_csv = config['data']['preprocessed_mac_csv']
 
     # constructing the filepath of the corpus
     csv_filepath_raw_data = data_root / raw_data / mac_csv_filename

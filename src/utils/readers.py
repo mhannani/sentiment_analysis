@@ -4,7 +4,7 @@ from typing import List
 from pathlib import Path
 
 
-def read_df(csv_filepath: Path) -> pd.DataFrame:
+def read_df(csv_filepath: Path, sep: str = ',') -> pd.DataFrame:
     """Read dataframe and return it.
 
     Args:
@@ -14,7 +14,7 @@ def read_df(csv_filepath: Path) -> pd.DataFrame:
         pd.DataFrame: The dataframe.
     """
     
-    return pd.read_csv(csv_filepath.as_posix())
+    return pd.read_csv(csv_filepath.as_posix(), sep = sep)
 
 def read_json(json_filepath: Path) -> List:
     """Reads json data from file.

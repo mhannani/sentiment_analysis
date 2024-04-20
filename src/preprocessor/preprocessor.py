@@ -7,7 +7,7 @@ from src.utils.converters import df_to_list
 from src.utils.readers import read_df
 from src.utils.cleaners import clean_df
 from src.utils.encoders import label_encode
-from src.utils.save import save_json
+from src.utils.save import save_csv, save_json
 
 
 class Preprocessor:
@@ -15,7 +15,7 @@ class Preprocessor:
     Reviews or comments preprocessor.
     """
 
-    def __init__(self, config: object, csv_path: Path, output_json_path: Path):
+    def __init__(self, config: object, csv_path: Path, output_path: Path):
         """Preprocessor class constructor
 
         Args:
@@ -30,8 +30,8 @@ class Preprocessor:
         # raw csv file path
         self.csv_path = csv_path
 
-        # preprocessed data json path
-        self.output_json_path = output_json_path
+        # preprocessed data ouput path
+        self.output_path = output_path
 
     def preprocess(self) -> Union[pd.DataFrame]:
         """preprocess the given csv file and return it as Dataframe.
@@ -60,5 +60,9 @@ class Preprocessor:
         # dataframe to list
         df_list = df_to_list(df)
         
-        # save data processed
-        save_json(self.output_json_path, df_list)
+        # save data processed as json
+        save_json(self.output_path, df_list)
+        
+        
+        # save preprocessed data as csv
+        save_csv(self.output_path, df)

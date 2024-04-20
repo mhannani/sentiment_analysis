@@ -7,13 +7,23 @@ raw = "raw/MAC"
 
 mac_csv_filename = "MAC_corpus.csv"
 preprocessed_mac_json = "MAC_corpus.json"
+preprocessed_mac_csv = "MAC_corpus.csv"
 
+train_csv_filename = "train.csv"
+test_csv_filename = "test.csv"
+
+[params]
+train_test_or_val_size = 0.1
 
 [output]
 root = "output/MAC"
-predictions = "predictions.mac.gpt3.5.csv"
+mac_tsv_predictions = "predictions.mac.gpt3.5.tsv"
 
 [prompting]
 system_message = "Predict the class of this Arabic review (e.g ternary classification), whether it's positive (return 1), neutral (return 0) or negative (return -1) review. Please do not return anything other than that."
 gemini_system_message = "What is the sentiment of the following tweets? Answer with positive, negative, or neutral."
 
+
+
+[pretrained]
+bert_models = ['asafaya/bert-base-arabic', 'SI2M-Lab/DarijaBERT-arabizi']
