@@ -4,38 +4,52 @@ from pathlib import Path
 
 from sklearn.model_selection import StratifiedShuffleSplit
 
+from src.utils.readers import read_df
 from src.utils.save import save_csv
 
 
 class DataSplitter:
     """Data Splitter helper functions"""
     
-    def __init__(self, config: object, df: pd.DataFrame) -> None:
+    def __init__(self, config: object, preprocessed_csv: Path) -> None:
         """class constructor
 
         Args:
             config (object): configuration object
-            df (pd.DataFrame): dataframe object
+            preprocessed_csv (Path): preprocessed csv data file path
         """
         
         # configuration object
         self.config = config
-        
-        # dataframe
-        self.df = df
-        
+
         # data root
         self.data_root = Path(self.config['data']['root'])
-        
+
         # processed root
         self.processed_root = self.config['data']['processed']
-        
+
+        # read dataframe
+        self.df = read_df(preprocessed_csv)
+
         # train_test_or_val_size
         train_test_or_val_size = self.config['params']['train_test_or_val_size']
-        
+
         # Initialize StratifiedShuffleSplit
         self.stratified_splitter = StratifiedShuffleSplit(n_splits=1, test_size=train_test_or_val_size, random_state=42)
 
+        # Check for missing values in the DataFrame
+        self._check_missing_values()
+    
+    def _check_missing_values(self) -> None:
+        """Check for missing values in the DataFrame"""
+        
+        # count the missing values
+        missing_values = self.df.isna().sum()
+        
+        # throw an error when missing values are present
+        if missing_values.sum() > 0:
+            raise Exception("Missing values found in the DataFrame")
+            
     def split(self) -> Tuple[pd.DataFrame]:
         """Splits dataframe into train and test sets.
 

@@ -26,12 +26,9 @@ if __name__ == "__main__":
 
     # preprocessed mac csv abs path
     preprocessed_mac_csv_path = data_root / processed_root / preprocessed_mac_csv_filename
-    
-    # read dataframe
-    df = read_df(preprocessed_mac_csv_path)
-    
+
     # data splitter
-    data_splitter = DataSplitter(config, df)
+    data_splitter = DataSplitter(config, preprocessed_mac_csv_path)
     
     # split and save data directly
     data_splitter.split_and_save()

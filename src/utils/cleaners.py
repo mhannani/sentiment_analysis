@@ -10,6 +10,7 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
         1. Removing missing values,
         2. Removing samples belonging to the mixed type,
         3. Dropping the column `class` as it's not relevent for the porject objective.
+        4. Removing rows where the 'tweets' column contains empty strings.
 
     Args:
         df (pd.DataFrame): DataFrame to clean.
@@ -18,7 +19,7 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: The cleaned version of the DataFrame.
     """
     
-    # This will drop rows where tweets, type or class are NaN
+    # drop rows where tweets, type or class are NaN
     df.dropna(subset=['tweets', 'type', 'class'], inplace=True)
     
     # Renaming column to avoid reserved keywords conflicts
@@ -29,6 +30,9 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
     
     # Remove rows where the 'type' column has the value 'mixed'
     df = df[df['type'] != 'mixed']
+    
+    # Remove rows where 'tweets' column contains empty strings
+    df = df[df['tweets'] != '']
 
     return df
 

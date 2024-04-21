@@ -28,4 +28,4 @@ def save_csv(file_path: Path, df: pd.DataFrame):
     """
     
     # Get the extension of the file
-    return df.to_csv(file_path.with_suffix('.csv'), index=False)
+    return df.to_csv(file_path.with_suffix('.csv'), index=False, encoding='utf-8')

@@ -14,6 +14,10 @@ test_csv_filename = "test.csv"
 
 [params]
 train_test_or_val_size = 0.1
+batch_size = 32
+hidden_size = 512
+dropout_prob = 0.1
+num_classes = 3
 
 [output]
 root = "output/MAC"

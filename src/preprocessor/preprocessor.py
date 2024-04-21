@@ -62,7 +62,6 @@ class Preprocessor:
         
         # save data processed as json
         save_json(self.output_path, df_list)
-        
-        
+
         # save preprocessed data as csv
         save_csv(self.output_path, df)

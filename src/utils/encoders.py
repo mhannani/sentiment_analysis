@@ -12,7 +12,7 @@ def label_encode(df: pd.DataFrame) -> pd.DataFrame:
     """
     
     # class mapping for type
-    type_class_mapping = {"positive": 1, "negative": -1, "neutral": 0}
+    type_class_mapping = {"negative": 0, "neutral": 1, "positive": 2}
     
     # map classes to numerical representation
     df['type'] = df['type'].map(type_class_mapping)
