@@ -90,4 +90,4 @@ target/
 
 venv
 
-output_bert
+fine_tuned_bert

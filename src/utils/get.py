@@ -26,26 +26,13 @@ def get_model_tokenizer(model_id: str) -> Tuple:
         "darijabert-arabizi": "SI2M-Lab/DarijaBERT-arabizi",
         "DarijaBERT": "SI2M-Lab/DarijaBERT",
         "bert-base-arabertv2": "aubmindlab/bert-base-arabertv2",
-        "bert-base-arabic-finetuned-emotion": "hatemnoaman/bert-base-arabic-finetuned-emotion"
     }
     
-    model_id_for_masked_lm = ['bert-base-arabic', 'darijabert-arabizi', 'DarijaBERT', 'bert-base-arabertv2']
-    model_id_for_seq_classification = ['bert-base-arabic-finetuned-emotion']
-    model_id_bert = ['bert-base-multilingual-cased']
+    if model_id in model_id_mapping.keys():
+        return AutoTokenizer.from_pretrained(model_id_mapping[model_id]), AutoModelForSequenceClassification.from_pretrained(model_id_mapping[model_id], num_labels=3)
 
-    model_id_repo = model_id_mapping[model_id]
-    
-    if model_id in model_id_for_masked_lm:
-        return AutoTokenizer.from_pretrained(model_id_repo), AutoModelForSequenceClassification.from_pretrained(model_id_repo)
-    
-    elif model_id in model_id_bert:
-        return BertTokenizer.from_pretrained(model_id_repo), BertModel.from_pretrained(model_id_repo)
-    
-    elif model_id in model_id_for_seq_classification:
-        return AutoTokenizer.from_pretrained(model_id_repo), AutoModelForSequenceClassification.from_pretrained(model_id_repo)
-        
     else:
-        raise ValueError(f"Model ID '{model_id_repo}' not found in the mapping. Add it or use another one")
+        raise ValueError(f"Model ID '{model_id}' not found in the mapping. Add it or use another one")
 
 
 if __name__ == "__main__":

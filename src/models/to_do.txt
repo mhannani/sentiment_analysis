@@ -1,0 +1,163 @@
+
+## 
+Using an attention mechanism to dynamically combine embeddings allows the model to learn which embeddings are more important for the task at hand. In the context of combining BERT and FastText embeddings, you could use an attention mechanism to dynamically weigh the contributions of each embedding based on the context of the input sequence.
+
+Here's a high-level overview of how you could implement this:
+
+Calculate Attention Weights: Compute attention weights for each embedding, indicating how much importance each embedding should have in the final representation. You can compute attention weights using a learned attention mechanism, such as a multi-head self-attention mechanism or a simple feedforward neural network.
+Weighted Sum: Multiply each embedding by its corresponding attention weight and sum the weighted embeddings to obtain the final combined representation.
+Pass Through Classifier: Pass the combined representation through the classifier to obtain the final logits for classification.
+
+
+Implementing the compute_attention method involves defining a mechanism to compute attention weights based on the BERT embeddings and FastText embeddings. This could be a simple dot product attention, a multi-head attention mechanism, or a feedforward neural network that learns to compute attention weights.
+
+Keep in mind that implementing attention mechanisms can add complexity to your model and may require additional tuning to get the best performance. Experiment with different attention mechanisms and architectures to find the best approach for your specific task.
+
+
+def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor, token_indices: torch.Tensor) -> torch.Tensor:
+    """Forward pass for the classifier with attention mechanism.
+
+    Args:
+        input_ids (torch.Tensor): Token ids of input sequences
+        attention_mask (torch.Tensor): Attention mask
+        token_indices (torch.Tensor): Indices of tokens for FastText embeddings
+    """
+    # Get BERT embeddings
+    _, cls_hs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
+    
+    # Get FastText embeddings
+    fasttext_embeds = self.fasttext_embeddings(token_indices)
+    
+    # Compute attention weights
+    # Example: attn_weights = self.compute_attention(cls_hs, fasttext_embeds)
+    
+    # Apply attention to FastText embeddings
+    # Example: attn_fasttext_embeds = attn_weights * fasttext_embeds
+    
+    # Combine BERT embeddings and attended FastText embeddings
+    # Example: combined_embeds = torch.cat((cls_hs, attn_fasttext_embeds), dim=1)
+    
+    # Apply dropout
+    combined_embeds = self.dropout(combined_embeds)
+    
+    # Pass combined embeddings through classifier
+    logits = self.classifier(combined_embeds)
+    
+    return logits
+
+
+    -----------------------------------------------------------------------------------------------------------
+
+    To incorporate an additional embedding like FastText into your SentimentClassifier along with BERT, you can follow these steps:
+
+Load FastText Embeddings: First, you need to load the FastText word embeddings. You can use libraries like gensim or torchtext to load pre-trained FastText embeddings.
+Map Tokens to FastText Embeddings: For each token in your input sequences, retrieve its corresponding FastText embedding. If a token is not found in the FastText vocabulary, you can handle it based on your requirements, such as initializing its embedding randomly or assigning a special unknown token embedding.
+Concatenate or Combine Embeddings: Once you have the FastText embeddings for each token, you can choose how to combine them with the BERT embeddings. You could concatenate the FastText embeddings with the BERT embeddings along the feature dimension, or you could use an attention mechanism to dynamically combine them.
+Pass Combined Embeddings through Classifier: Finally, you would pass the combined embeddings through your classifier architecture (which you've already defined) to obtain the final logits for classification.
+Here's a basic outline of how you could modify your SentimentClassifier class to incorporate FastText embeddings:
+
+import torch
+import torch.nn as nn
+from transformers.models.bert.modeling_bert import BertModel
+
+class SentimentClassifier(nn.Module):
+    """Sentiment classifier using BERT and FastText embeddings"""
+    
+    def __init__(self, config: object, bert: BertModel, fasttext_embeddings: nn.Embedding, *args, **kwargs) -> None:
+        """class constructor of the classifier
+
+        Args:
+            config (object): configuration object
+            bert (BertModel): BERT model to be fine-tuned for sequence classification
+            fasttext_embeddings (nn.Embedding): FastText word embeddings
+        """
+        
+        super().__init__(*args, **kwargs)
+        
+        self.config = config
+        self.hidden_size = int(config['params']['hidden_size'])
+        self.dropout_prob = float(config['params']['dropout_prob'])
+        self.num_classes = int(config['params']['num_classes'])
+        self.bert: BertModel = bert
+        self.fasttext_embeddings = fasttext_embeddings
+        
+        self.dropout = nn.Dropout(self.dropout_prob)
+        self.relu = nn.ReLU()
+        self._freeze_all_layers()
+        
+        # Define additional layers for FastText embedding
+        # Example: self.fasttext_linear = nn.Linear(embedding_dim, hidden_size)
+        
+        self.classifier = nn.Sequential(
+            nn.Linear(self.bert.config.hidden_size + embedding_dim, self.hidden_size),
+            nn.ReLU(),
+            self.dropout,
+            nn.Linear(self.hidden_size, self.num_classes)
+        )
+
+    def _freeze_all_layers(self) -> None:
+        """Freeze all layers in the BERT model."""
+        for param in self.bert.parameters():
+            param.requires_grad = False
+
+    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor, token_indices: torch.Tensor) -> torch.Tensor:
+        """Forward pass for the classifier.
+
+        Args:
+            input_ids (torch.Tensor): Token ids of input sequences
+            attention_mask (torch.Tensor): Attention mask
+            token_indices (torch.Tensor): Indices of tokens for FastText embeddings
+        """
+        _, cls_hs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
+        
+        # Retrieve FastText embeddings for each token
+        fasttext_embeds = self.fasttext_embeddings(token_indices)
+        
+        # Combine or concatenate FastText embeddings with BERT embeddings
+        # Example: combined_embeds = torch.cat((cls_hs, fasttext_embeds), dim=1)
+        
+        combined_embeds = torch.cat((cls_hs, fasttext_embeds), dim=1)
+        
+        # Apply dropout
+        combined_embeds = self.dropout(combined_embeds)
+        
+        # Pass combined embeddings through classifier
+        logits = self.classifier(combined_embeds)
+        
+        return logits
+
+
+
+In this example, fasttext_embeddings is assumed to be an instance of nn.Embedding, representing the FastText word embeddings. 
+You would need to load the FastText embeddings separately and create an nn.Embedding object from them. Then, you pass the token 
+indices for the FastText embeddings (token_indices) alongside the BERT input to the forward method, where you retrieve the
+FastText embeddings and combine them with the BERT embeddings before passing them through the classifier.
+
+
+==================================================================================================================
+
+import optuna
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+
+def objective(trial):
+    # Define hyperparameters to optimize
+    n_estimators = trial.suggest_int('n_estimators', 10, 100)
+    max_depth = trial.suggest_int('max_depth', 2, 32)
+    
+    # Initialize model with hyperparameters
+    model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
+    
+    # Evaluate model using cross-validation
+    score = cross_val_score(model, X_train, y_train, cv=3).mean()
+    return score
+
+# Create an Optuna study object
+study = optuna.create_study(direction='maximize')
+
+# Optimize the objective function
+study.optimize(objective, n_trials=100)
+
+# Get the best hyperparameters and their score
+best_params = study.best_params
+best_score = study.best_value

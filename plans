@@ -1,0 +1,36 @@
+We will experiments with different variations of models, tokenizer and other techniques
+=======================================================================================
+
+MODEL_TRAINED_ON_ARABIC_TEXT_TO_FINE_TUNE:
+    - google-bert/bert-base-multilingual-cased(and it variant) -> as a baseline
+    - asafaya/bert-base-arabic
+    - SI2M-Lab/DarijaBERT-arabizi
+    - SI2M-Lab/DarijaBERT
+    - aubmindlab/bert-base-arabertv2
+    - RoBERTa(wasn't trained on arabic corpus)
+    - DistilBERT(smaller and faster version) => English onlt
+    - ALBERT(Lite Bert) => English
+    - ELECTRA => English only
+    - hatemnoaman/bert-base-arabic-finetuned-emotion ====
+
+    The most of these models uses different technique for pre-training on large corpus, we would like to see the impact of those technique
+    on our fine-tuned for sentiment analysis.
+
+TOKENIZERS:
+    - Bert Embeddings itself
+    - FastText(Best for handing OOV issue)
+    - FastText + Bert Embedding(conctenated(context + semantic information combined) + initialize BERT embeddings with FastText's embeddings during training)
+    - Glove + (Maybe the same thing)
+    - Word2Vec
+
+Regularization Techniques:
+    - Dropout
+    - Weight decay
+    - Layer normalization
+
+
+No exlusive, I will add more when the base code source is implemented.
+
+## Multi-Task Learning
+## Ensemble Methods
+## .....

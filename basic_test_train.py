@@ -15,7 +15,6 @@ from src.utils.get import get_model_tokenizer
 from src.data.sentiment_data import SentimentDataset
 from src.data.split import DataSplitter
 from src.utils.get import get_model_tokenizer
-from src.models.classifier import SentimentClassifier
 
 
 def compute_metrics(p):
@@ -51,13 +50,7 @@ if __name__ == "__main__":
     batch_size = int(config['params']['batch_size'])
 
     # list of models to train
-    model_id_mapping = {
-        "bert-base-multilingual-cased": 'google-bert/bert-base-multilingual-cased',
-        "bert-base-arabic": "asafaya/bert-base-arabic",
-        "darijabert-arabizi": "SI2M-Lab/DarijaBERT-arabizi",
-        "DarijaBERT": "SI2M-Lab/DarijaBERT",
-        "bert-base-arabertv2": "aubmindlab/bert-base-arabertv2",
-    }
+    model_id_to_train = "bert-base-arabic-finetuned-emotion"
     
     # preprocessed csv file
     preprocessed_mac_csv = data_root / processed_data / preprocessed_mac_csv_filename
@@ -68,44 +61,40 @@ if __name__ == "__main__":
     # split data into train and val sets
     train_df, val_df = data_splitter.split()
 
-    # train all models
-    for model_id in model_id_mapping.keys():
-        
-        print(f"\n Training {model_id}...")
+    # get the model and the tokenizer
+    tokenizer, model = get_model_tokenizer(model_id_to_train)
 
-        # get the model and the tokenizer
-        tokenizer, model = get_model_tokenizer(model_id)
-
-        # customize the current model
-        model = SentimentClassifier(config, model)
-        
-        # train dataset
-        train_data = SentimentDataset(train_df, tokenizer)
-        
-        # valid dataset
-        eval_data = SentimentDataset(val_df, tokenizer)
-
-        # training args
-        training_args = TrainingArguments(
-            output_dir=f"fine_tuned_bert/{model_id}",
-            evaluation_strategy="epoch",
-            do_eval=True,
-            per_device_train_batch_size=2,
-            per_device_eval_batch_size=2,
-            num_train_epochs=3,
-            seed=42,
-            save_strategy = "epoch"
-        )
+    # train dataset
+    train_data = SentimentDataset(train_df, tokenizer)
     
-        # trainer
-        trainer = Trainer(
-            model=model,
-            args=training_args,
-            compute_metrics=compute_metrics,
-            train_dataset=train_data,
-            eval_dataset = eval_data,
-        )
+    # valid dataset
+    eval_data = SentimentDataset(val_df, tokenizer)
 
-        # train current model
-        trainer.train()
+    # training args
+    training_args = TrainingArguments(
+        output_dir=f"output_bert/{model_id_to_train}",
+        evaluation_strategy="steps",
+        eval_steps=500,
+        per_device_train_batch_size=2,
+        per_device_eval_batch_size=2,
+        num_train_epochs=1,
+        seed=0,
+        save_strategy = "epoch"
+    )
 
+    # trainer
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        compute_metrics=compute_metrics,
+        train_dataset=train_data,
+        eval_dataset = eval_data,
+    )
+
+    # train current model
+    trainer.train()
+
+    # evaluate current model
+    evaluation_results = trainer.evaluate()
+    
+    print(evaluation_results)
