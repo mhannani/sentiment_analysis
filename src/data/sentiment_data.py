@@ -73,14 +73,14 @@ class SentimentDataset(Dataset):
         self.tokenizer = tokenizer
         
         # tweets
-        self.tweets = self.df['tweets'].tolist()[:6]
+        self.tweets = self.df['tweets'].tolist()
         
         # train mode
         self.train_mode = train_mode
         
         # labels
         if self.train_mode:
-            self.labels = self.df['type'].tolist()[:6]
+            self.labels = self.df['type'].tolist()
 
         # encode tweets
         self.encodings = self.tokenizer(self.tweets, padding='max_length', truncation=True, max_length=512, return_tensors="pt", return_attention_mask=True)

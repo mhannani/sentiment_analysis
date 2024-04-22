@@ -1,3 +1,4 @@
+import comet_ml
 import os
 from pathlib import Path
 from pandas import read_csv
@@ -22,6 +23,8 @@ from src.utils.get import get_model_tokenizer
 from src.models.classifier import SentimentClassifier
 
 
+
+
 os.environ["HF_HOME"] = "/netscratch/mhannani/.cashe_hg"
 
 # Filter out UndefinedMetricWarning
@@ -29,14 +32,25 @@ warnings.filterwarnings("ignore")
 
 
 def compute_metrics(p):
+    experiment = comet_ml.get_global_experiment()
+    
     pred, labels = p
     pred = np.argmax(pred, axis=1)
 
     accuracy = accuracy_score(y_true=labels, y_pred=pred)
-    recall = recall_score(y_true=labels, y_pred=pred,average='weighted')
-    precision = precision_score(y_true=labels, y_pred=pred, average='weighted')
-    f1 = f1_score(y_true=labels, y_pred=pred, average='weighted')
+    recall = recall_score(y_true=labels, y_pred=pred,average='macro')
+    precision = precision_score(y_true=labels, y_pred=pred, average='macro')
+    f1 = f1_score(y_true=labels, y_pred=pred, average='macro')
     
+    if experiment:
+      epoch = int(experiment.curr_epoch) if experiment.curr_epoch is not None else 0
+      experiment.set_epoch(epoch)
+      experiment.log_confusion_matrix(
+          y_true=labels, 
+          y_predicted=pred, 
+          file_name=f"confusion-matrix-epoch-{epoch}.json", 
+      )
+      
     return {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
 
 
@@ -61,10 +75,10 @@ if __name__ == "__main__":
     # list of models to train
     model_id_mapping = {
         "bert-base-multilingual-cased": 'google-bert/bert-base-multilingual-cased',
-        "bert-base-arabic": "asafaya/bert-base-arabic",
-        "darijabert-arabizi": "SI2M-Lab/DarijaBERT-arabizi",
-        "DarijaBERT": "SI2M-Lab/DarijaBERT",
-        "bert-base-arabertv2": "aubmindlab/bert-base-arabertv2",
+        # "bert-base-arabic": "asafaya/bert-base-arabic",
+        # "darijabert-arabizi": "SI2M-Lab/DarijaBERT-arabizi",
+        # "DarijaBERT": "SI2M-Lab/DarijaBERT",
+        # "bert-base-arabertv2": "aubmindlab/bert-base-arabertv2",
     }
     
     # preprocessed csv file
@@ -79,6 +93,8 @@ if __name__ == "__main__":
     # train all models
     for model_id in model_id_mapping.keys():
         
+        comet_ml.init(project_name=f'fine-tuned-bert-id-{model_id}')
+        
         print(f"\n --> Training {model_id} <-- ")
 
         # get the model and the tokenizer
@@ -86,8 +102,10 @@ if __name__ == "__main__":
 
         # customize the current model
         model = SentimentClassifier(config, model)
+        
+        # --
+        # print("get_model_trainable_layers(model): ", get_model_trainable_layers(model))
 
-        print("get_model_trainable_layers(model): ", get_model_trainable_layers(model))
         # train dataset
         train_data = SentimentDataset(train_df, tokenizer)
         
@@ -101,7 +119,7 @@ if __name__ == "__main__":
             do_eval=True,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            num_train_epochs=40,
+            num_train_epochs=100,
             seed=42,
             save_strategy = "epoch"
         )

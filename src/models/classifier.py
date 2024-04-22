@@ -82,9 +82,15 @@ class SentimentClassifier(nn.Module):
         # freeze all layer of bert model
         self._freeze_all_layers()
         
-        self.bert.classifier = CustomClassifier(input_size=self.bert.config.hidden_size, hidden_size=self.hidden_size,
-                                                num_classes=self.num_classes, dropout_prob=self.dropout_prob)
+        # self.bert.classifier = CustomClassifier(input_size=self.bert.config.hidden_size, hidden_size=self.hidden_size,
+        #                                         num_classes=self.num_classes, dropout_prob=self.dropout_prob)
 
+        self.bert.classifier = nn.Sequential(
+            nn.Linear(self.bert.config.hidden_size, self.hidden_size),
+            nn.ReLU(),
+            nn.Dropout(self.dropout_prob),
+            nn.Linear(self.hidden_size, self.num_classes)
+        )
     def _freeze_all_layers(self) -> None:
         """Freeze all layers in the BERT model."""
         
