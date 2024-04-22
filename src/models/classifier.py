@@ -44,6 +44,9 @@ class CustomClassifier(nn.Module):
         Returns:
             torch.Tensor: Output tensor
         """
+        
+        self.to(x.device)
+        
         return self.classifier(x)
     
 

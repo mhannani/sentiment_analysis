@@ -11,6 +11,8 @@ def get_model_trainable_layers(model: nn.Module) -> List:
     Returns:
         List: List of trainable layers
     """
+    
+    print(model)
 
     # trainable layers
     trainable_layers = []

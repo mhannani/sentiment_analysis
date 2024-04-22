@@ -1,15 +1,19 @@
+import os
 from pathlib import Path
 from pandas import read_csv
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
+import torch
 from transformers import BertTokenizer, BertModel, BertForSequenceClassification
 from transformers import TrainingArguments, Trainer
 from transformers import EarlyStoppingCallback
 from pandas import read_csv
 import numpy as np
+import warnings
 
 
 from src.data.sentiment_data import SentimentDataset
 from src.data.split import DataSplitter
+from src.utils.model import get_model_trainable_layers
 from src.utils.parsers import parse_toml
 from src.utils.get import get_model_tokenizer
 from src.data.sentiment_data import SentimentDataset
@@ -18,12 +22,16 @@ from src.utils.get import get_model_tokenizer
 from src.models.classifier import SentimentClassifier
 
 
+os.environ["HF_HOME"] = "/netscratch/mhannani/.cashe_hg"
+
+# Filter out UndefinedMetricWarning
+warnings.filterwarnings("ignore")
+
+
 def compute_metrics(p):
-    print("p[]", p)
     pred, labels = p
     pred = np.argmax(pred, axis=1)
 
-    print(labels, pred)
     accuracy = accuracy_score(y_true=labels, y_pred=pred)
     recall = recall_score(y_true=labels, y_pred=pred,average='weighted')
     precision = precision_score(y_true=labels, y_pred=pred, average='weighted')
@@ -71,14 +79,15 @@ if __name__ == "__main__":
     # train all models
     for model_id in model_id_mapping.keys():
         
-        print(f"\n Training {model_id}...")
+        print(f"\n --> Training {model_id} <-- ")
 
         # get the model and the tokenizer
         tokenizer, model = get_model_tokenizer(model_id)
 
         # customize the current model
         model = SentimentClassifier(config, model)
-        
+
+        print("get_model_trainable_layers(model): ", get_model_trainable_layers(model))
         # train dataset
         train_data = SentimentDataset(train_df, tokenizer)
         
@@ -87,12 +96,12 @@ if __name__ == "__main__":
 
         # training args
         training_args = TrainingArguments(
-            output_dir=f"fine_tuned_bert/{model_id}",
+            output_dir=f"/netscratch/mhannani/fine_tuned_bert/{model_id}",
             evaluation_strategy="epoch",
             do_eval=True,
-            per_device_train_batch_size=2,
-            per_device_eval_batch_size=2,
-            num_train_epochs=3,
+            per_device_train_batch_size=batch_size,
+            per_device_eval_batch_size=batch_size,
+            num_train_epochs=40,
             seed=42,
             save_strategy = "epoch"
         )
