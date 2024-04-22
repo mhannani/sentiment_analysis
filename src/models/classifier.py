@@ -81,6 +81,9 @@ class SentimentClassifier(nn.Module):
 
         # freeze all layer of bert model
         self._freeze_all_layers()
+        
+        self.bert.classifier = CustomClassifier(input_size=self.bert.config.hidden_size, hidden_size=self.hidden_size,
+                                                num_classes=self.num_classes, dropout_prob=self.dropout_prob)
 
     def _freeze_all_layers(self) -> None:
         """Freeze all layers in the BERT model."""
@@ -103,49 +106,48 @@ class SentimentClassifier(nn.Module):
         """
         
         # Forward pass through the BERT model - Almost all models in our problem are based on BertForSequenceClassification
-        if hasattr(self.bert, 'classifier'):
-            # the model has already the (classifier layer, preceded by dropout)
-            # we will simply replace the existin classifier with out custom one
+        # if hasattr(self.bert, 'classifier'):
+        # the model has already the (classifier layer, preceded by dropout)
+        # we will simply replace the existin classifier with out custom one
+        
+        # override the existing classifier
+        
+        # forward pass
+        return self.bert(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+
+
+        # # add dropout and the classifier
+        # else:
+        #     outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
+
+        #     # Check if the BERT model's output contains pooler output
+        #     if 'pooler_output' not in outputs:
+        #         raise ValueError("The BERT model's output does not contain 'pooler_output'. Ensure that the BERT model is configured to return the pooler output.")
+
+        #     # Retrieve the pooler output
+        #     pooler_out = outputs.pooler_output
+
+        #     # Apply dropout
+        #     pooler_out = nn.Dropout(self.dropout_prob)(pooler_out)
+
+        #     # custom classifier head
+        #     classifier = CustomClassifier(input_size=self.bert.config.hidden_size,hidden_size=self.hidden_size,num_classes=self.num_classes,dropout_prob=self.dropout_prob)
+
+        #     # Feed the pooled output through the classifier head
+        #     logits = classifier(pooler_out)
+
+        #     # define losse function for multi-label classification
+        #     loss_fct = nn.CrossEntropyLoss()
             
-            # override the existing classifier
-            self.bert.classifier = CustomClassifier(input_size=self.bert.config.hidden_size, hidden_size=self.hidden_size,
-                                                    num_classes=self.num_classes, dropout_prob=self.dropout_prob)
-            # forward pass
-            return self.bert(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-
-
-        # add dropout and the classifier
-        else:
-            outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-
-            # Check if the BERT model's output contains pooler output
-            if 'pooler_output' not in outputs:
-                raise ValueError("The BERT model's output does not contain 'pooler_output'. Ensure that the BERT model is configured to return the pooler output.")
-
-            # Retrieve the pooler output
-            pooler_out = outputs.pooler_output
-
-            # Apply dropout
-            pooler_out = nn.Dropout(self.dropout_prob)(pooler_out)
-
-            # custom classifier head
-            classifier = CustomClassifier(input_size=self.bert.config.hidden_size,hidden_size=self.hidden_size,num_classes=self.num_classes,dropout_prob=self.dropout_prob)
-
-            # Feed the pooled output through the classifier head
-            logits = classifier(pooler_out)
-
-            # define losse function for multi-label classification
-            loss_fct = nn.CrossEntropyLoss()
-            
-            # compute the loss
-            loss = loss_fct(logits.view(-1, self.num_classes), labels.view(-1))
+        #     # compute the loss
+        #     loss = loss_fct(logits.view(-1, self.num_classes), labels.view(-1))
                 
-            return SequenceClassifierOutput(
-                loss=loss,
-                logits=logits,
-                hidden_states=outputs.hidden_states,
-                attentions=outputs.attentions,
-            )
+        #     return SequenceClassifierOutput(
+        #         loss=loss,
+        #         logits=logits,
+        #         hidden_states=outputs.hidden_states,
+        #         attentions=outputs.attentions,
+        #     )
 
 # class CustomBertForSequenceClassification(BertForSequenceClassification):
 #     """ Custom Bert for the classification task"""
