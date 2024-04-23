@@ -19,12 +19,17 @@ def df_to_list(df: pd.DataFrame) -> List[dict]:
     for idx, row in enumerate(df.itertuples(), start=1):
         
         # Create a dictionary for the current row
-        sample_dict = {
-            "key": idx,
-            "tweet": row.tweets,
-            "type": row.type,
-            "class_name": row.class_name,
-        }
+        sample_dict = {"key": idx}
+        
+        # Add available fields to the dictionary
+        if hasattr(row, 'tweets'):
+            sample_dict["tweet"] = row.tweets
+   
+        if hasattr(row, 'type'):
+            sample_dict["type"] = row.type
+
+        if hasattr(row, 'class_name'):
+            sample_dict["class_name"] = row.class_name
         
         result.append(sample_dict)
     

@@ -4,8 +4,9 @@ from pathlib import Path
 
 from sklearn.model_selection import StratifiedShuffleSplit
 
+from src.utils.converters import df_to_list
 from src.utils.readers import read_df
-from src.utils.save import save_csv
+from src.utils.save import save_csv, save_json
 
 
 class DataSplitter:
@@ -78,8 +79,12 @@ class DataSplitter:
     
         return train_df, test_df
 
-    def split_and_save(self) -> None:
-        """Splits dataset and save sets into disk. usually that for train and test sets."""
+    def split_and_save(self, _save_json: bool = False) -> None:
+        """Splits dataset and save sets into disk. usually that for train and test sets.
+
+        Args:
+            save_json (bool, optional): Whether to save data as json as well. Defaults to False.
+        """
         
         # split data
         train_df, test_df = self.split()
@@ -99,5 +104,21 @@ class DataSplitter:
         # save train set
         save_csv(train_csv_abs_path, train_df)
         
+        # save train set as json
+        if _save_json:
+            # convert df to list of sample for train df
+            train_json_data = df_to_list(train_df)
+            
+            # save data to json file
+            save_json(train_csv_abs_path, train_json_data)
+
         # save test set
         save_csv(test_csv_abs_path, test_df)
+        
+        # save test set as json
+        if _save_json:
+            # convert df to list of samples for test df
+            test_json_data = df_to_list(test_df)
+            
+            # save data to json file
+            save_json(test_csv_abs_path, test_json_data)       

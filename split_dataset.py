@@ -31,4 +31,4 @@ if __name__ == "__main__":
     data_splitter = DataSplitter(config, preprocessed_mac_csv_path)
     
     # split and save data directly
-    data_splitter.split_and_save()
+    data_splitter.split_and_save(_save_json = True)

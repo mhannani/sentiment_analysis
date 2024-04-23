@@ -16,7 +16,7 @@ def save_json(file_path: Path, json_data: List) -> None:
     file_path.parent.mkdir(parents=True, exist_ok=True)
     
     # write data
-    with open(file_path, 'w', encoding='utf-8') as file:
+    with open(file_path.with_suffix('.json'), 'w', encoding='utf-8') as file:
         json.dump(json_data, file, ensure_ascii=False, indent=4)
 
 def save_csv(file_path: Path, df: pd.DataFrame):
