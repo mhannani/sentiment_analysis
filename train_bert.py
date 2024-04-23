@@ -14,6 +14,7 @@ import warnings
 
 from src.data.sentiment_data import SentimentDataset
 from src.data.split import DataSplitter
+from src.utils.callbacks import PrintTrainLossCallback
 from src.utils.model import get_model_trainable_layers
 from src.utils.parsers import parse_toml
 from src.utils.get import get_model_tokenizer
@@ -21,8 +22,6 @@ from src.data.sentiment_data import SentimentDataset
 from src.data.split import DataSplitter
 from src.utils.get import get_model_tokenizer
 from src.models.classifier import SentimentClassifier
-
-
 
 
 os.environ["HF_HOME"] = "/netscratch/mhannani/.cashe_hg"
@@ -33,7 +32,7 @@ warnings.filterwarnings("ignore")
 
 def compute_metrics(p):
     experiment = comet_ml.get_global_experiment()
-    
+
     pred, labels = p
     pred = np.argmax(pred, axis=1)
 
@@ -74,11 +73,11 @@ if __name__ == "__main__":
 
     # list of models to train
     model_id_mapping = {
-        "bert-base-multilingual-cased": 'google-bert/bert-base-multilingual-cased',
-        # "bert-base-arabic": "asafaya/bert-base-arabic",
-        # "darijabert-arabizi": "SI2M-Lab/DarijaBERT-arabizi",
-        # "DarijaBERT": "SI2M-Lab/DarijaBERT",
-        # "bert-base-arabertv2": "aubmindlab/bert-base-arabertv2",
+        # "bert-base-multilingual-cased": 'google-bert/bert-base-multilingual-cased',
+        "bert-base-arabic": "asafaya/bert-base-arabic",
+        "darijabert-arabizi": "SI2M-Lab/DarijaBERT-arabizi",
+        "DarijaBERT": "SI2M-Lab/DarijaBERT",
+        "bert-base-arabertv2": "aubmindlab/bert-base-arabertv2",
     }
     
     # preprocessed csv file
@@ -101,7 +100,7 @@ if __name__ == "__main__":
         tokenizer, model = get_model_tokenizer(model_id)
 
         # customize the current model
-        model = SentimentClassifier(config, model)
+        # model = SentimentClassifier(config, model)
         
         # --
         # print("get_model_trainable_layers(model): ", get_model_trainable_layers(model))
@@ -119,8 +118,7 @@ if __name__ == "__main__":
             do_eval=True,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            num_train_epochs=100,
-            seed=42,
+            num_train_epochs=36,
             save_strategy = "epoch"
         )
     
@@ -131,8 +129,10 @@ if __name__ == "__main__":
             compute_metrics=compute_metrics,
             train_dataset=train_data,
             eval_dataset = eval_data,
+            # callbacks=[PrintTrainLossCallback]
         )
 
         # train current model
         trainer.train()
+        # trainer.evaluate()
 
