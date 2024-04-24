@@ -24,7 +24,7 @@ root = "output/MAC"
 mac_tsv_predictions = "predictions.mac.gpt3.5.tsv"
 
 [prompting]
-system_message = "Predict the class of this Arabic review (e.g ternary classification), whether it's positive (return 1), neutral (return 0) or negative (return -1) review. Please do not return anything other than that."
+system_message = "Predict the class of this Arabic review (e.g ternary classification), whether it's positive (return 2), neutral (return 1) or negative (return 0) review. Please do not return anything other than that."
 gemini_system_message = "What is the sentiment of the following tweets? Answer with positive, negative, or neutral."
 
 

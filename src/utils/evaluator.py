@@ -23,10 +23,10 @@ class Evaluator:
         self.across_class_names = across_class_names
         
         # class label order
-        self.type_labels = [-1.0, 0.0, 1.0]
+        self.type_labels = [0, 1, 2]
         
         # class names
-        self.classname_class_mapping = {'1.0': "dialectical", '0.0': "standard"}
+        self.classname_class_mapping = {'0': "standard", '1': "dialectical"}
         
         # averaging
         self.average = averaging
@@ -40,6 +40,10 @@ class Evaluator:
         Returns:
             Tuple: Evaluation results.
         """
+
+        # change dtype of columns
+        df.loc[:, 'gt_type'] = df['gt_type'].astype(int)
+        df.loc[:, 'pred_type'] = df['pred_type'].astype(int)
 
         # compute the accuracy
         accuracy = accuracy_score(df['gt_type'], df['pred_type'])

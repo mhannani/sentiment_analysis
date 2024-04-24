@@ -76,7 +76,11 @@ class DataSplitter:
         # Combining X_train and y_train into train_df and X_test and y_test into test_df
         train_df = pd.concat([X_train, y_train], axis=1)
         test_df = pd.concat([X_test, y_test], axis=1)
-    
+
+        # Adding the 'class_name' column to train_df and test_df
+        train_df['class_name'] = self.df.loc[train_index, 'class_name']
+        test_df['class_name'] = self.df.loc[test_index, 'class_name']
+        
         return train_df, test_df
 
     def split_and_save(self, _save_json: bool = False) -> None:
