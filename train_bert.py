@@ -100,7 +100,7 @@ if __name__ == "__main__":
         tokenizer, model = get_model_tokenizer(model_id)
 
         # customize the current model
-        # model = SentimentClassifier(config, model)
+        model = SentimentClassifier(config, model, retrain_classifier_head=True)
         
         # --
         # print("get_model_trainable_layers(model): ", get_model_trainable_layers(model))
@@ -135,4 +135,3 @@ if __name__ == "__main__":
         # train current model
         trainer.train()
         # trainer.evaluate()
-
