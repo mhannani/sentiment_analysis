@@ -1,1 +1,1 @@
-pipdeptree --warn silence --freeze > requirements.txt
+python -m  pipreqs.pipreqs . --force
