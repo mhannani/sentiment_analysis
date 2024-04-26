@@ -19,6 +19,8 @@ hidden_size = 512
 dropout_prob = 0.1
 num_classes = 3
 
+golve_embeddings = ""
+
 [output]
 root = "output/MAC"
 mac_tsv_predictions = "predictions.mac.gpt3.5.tsv"

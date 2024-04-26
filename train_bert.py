@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     # list of models to train
     model_id_mapping = {
-        # "bert-base-multilingual-cased": 'google-bert/bert-base-multilingual-cased',
+        "bert-base-multilingual-cased": 'google-bert/bert-base-multilingual-cased',
         "bert-base-arabic": "asafaya/bert-base-arabic",
         "darijabert-arabizi": "SI2M-Lab/DarijaBERT-arabizi",
         "DarijaBERT": "SI2M-Lab/DarijaBERT",
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     # train all models
     for model_id in model_id_mapping.keys():
         
-        comet_ml.init(project_name=f'fine-tuned-bert-id-{model_id}')
+        comet_ml.init(project_name=f'freezed-backbone-fine-tuned-bert-id-{model_id}')
         
         print(f"\n --> Training {model_id} <-- ")
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
         # training args
         training_args = TrainingArguments(
-            output_dir=f"/netscratch/mhannani/fine_tuned_bert/{model_id}",
+            output_dir=f"/netscratch/mhannani/freezed_backbone_fine_tuned_bert/{model_id}",
             evaluation_strategy="epoch",
             do_eval=True,
             per_device_train_batch_size=batch_size,

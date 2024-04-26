@@ -53,44 +53,48 @@ class CustomClassifier(nn.Module):
 class SentimentClassifier(nn.Module):
     """Sentiment classifier using BERT"""
     
-    def __init__(self, config: object, bert: BertModel, *args, **kwargs) -> None:
+    def __init__(self, toml_config: object, bert: BertModel, retrain_classifier_head: bool = False, *args, **kwargs) -> None:
         """class constructor of the classifier
 
         Args:
-            config (object): configuration object
+            toml_config (object): TOML configuration object
             bert (BertModel): BERT model to be fine-tuned for sequence classification
+            retrain_classifier_head(bool): Whether to retrain the BERT's classifier head(and obviously freeze the backbone)
         """
         
         # call parent's __init__ method
         super().__init__(*args, **kwargs)
         
-        # configuration object
-        self.config = config
+        # toml configuration object
+        self.toml_config = toml_config
 
         # classifier's hiddent state
-        self.hidden_size = int(config['params']['hidden_size'])
+        self.hidden_size = int(toml_config['params']['hidden_size'])
         
         # dropout
-        self.dropout_prob = float(config['params']['dropout_prob'])
+        self.dropout_prob = float(toml_config['params']['dropout_prob'])
 
         # number of classification class
-        self.num_classes = int(config['params']['num_classes'])
+        self.num_classes = int(toml_config['params']['num_classes'])
+
+        # freeze backbone
+        self.retrain_classifier_head = retrain_classifier_head
 
         # BERT model
         self.bert: BertModel = bert
 
-        # freeze all layer of bert model
-        self._freeze_all_layers()
-        
-        # self.bert.classifier = CustomClassifier(input_size=self.bert.config.hidden_size, hidden_size=self.hidden_size,
-        #                                         num_classes=self.num_classes, dropout_prob=self.dropout_prob)
+        # BERT's config
+        self.config = self.bert.config
 
-        self.bert.classifier = nn.Sequential(
-            nn.Linear(self.bert.config.hidden_size, self.hidden_size),
-            nn.ReLU(),
-            nn.Dropout(self.dropout_prob),
-            nn.Linear(self.hidden_size, self.num_classes)
-        )
+        # freeze all layer of bert model
+        if self.retrain_classifier_head:
+            # we need to freeze the whole network. then we override the extisting(frozen) classifier with 
+            # out custom one
+            self._freeze_all_layers()
+        
+            # override the last layer of BERT model(the classifier head)
+            self.bert.classifier = nn.Linear(self.config.hidden_size, self.num_classes)
+            
     def _freeze_all_layers(self) -> None:
         """Freeze all layers in the BERT model."""
         
@@ -114,10 +118,8 @@ class SentimentClassifier(nn.Module):
         # Forward pass through the BERT model - Almost all models in our problem are based on BertForSequenceClassification
         # if hasattr(self.bert, 'classifier'):
         # the model has already the (classifier layer, preceded by dropout)
-        # we will simply replace the existin classifier with out custom one
-        
-        # override the existing classifier
-        
+        # we will simply replace the existin classifier with out custom one(done in the class constructor)
+
         # forward pass
         return self.bert(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
 
