@@ -50,9 +50,30 @@ class DataSplitter:
         # throw an error when missing values are present
         if missing_values.sum() > 0:
             raise Exception("Missing values found in the DataFrame")
-            
-    def split(self) -> Tuple[pd.DataFrame]:
+    
+    def get_full_data(self) -> Tuple[List]:
+        """Returns the full dataset without performing any splitting
+
+        Returns:
+            Tuple[List]: List of sample. X, and y as Lists
+        """
+
+        # Defining features (X) and target (y)
+        X = self.df.drop(columns=['type', 'class_name'])
+        
+        # get the list out of Series object
+        X_list = [x[0] for x in X.values]
+        
+        # get the target and convert to list
+        y_list = self.df['type'].values.tolist()
+
+        return X_list, y_list
+        
+    def split(self, returned_as_lists: bool = False) -> Tuple[pd.DataFrame, List]:
         """Splits dataframe into train and test sets.
+
+        Args:
+            returned_as_lists (bool): Returns splitted data as Tuple of Lists
 
         Returns:
             Tuple[List]: Tuple of lists eg. X_train, y_train, X_test, y_test
@@ -73,6 +94,21 @@ class DataSplitter:
         y_train = y.iloc[train_index]
         y_test = y.iloc[test_index]
         
+        if returned_as_lists:
+            # convert Series object into List for X_train
+            X_train = [x[0] for x in X_train.values]
+
+            # convert Series object into List for y_train
+            y_train = y_train.values.tolist()
+            
+            # convert Series object into List for y_train
+            X_test = [x[0] for x in X_test.values]
+            
+            # convert Series object into List for y_test
+            y_test = y_test.values.tolist()
+            
+            return X_train, X_test, y_train, y_test
+
         # Combining X_train and y_train into train_df and X_test and y_test into test_df
         train_df = pd.concat([X_train, y_train], axis=1)
         test_df = pd.concat([X_test, y_test], axis=1)
@@ -125,4 +161,4 @@ class DataSplitter:
             test_json_data = df_to_list(test_df)
             
             # save data to json file
-            save_json(test_csv_abs_path, test_json_data)       
+            save_json(test_csv_abs_path, test_json_data)

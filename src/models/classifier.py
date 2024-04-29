@@ -1,40 +1,66 @@
 from typing import Optional, Tuple, Union
 from regex import F
 import torch
+import numpy as np
 import torch.nn as nn
 from transformers.models.bert.modeling_bert import BertForSequenceClassification
 from transformers.models.bert.modeling_bert import BertModel
 from transformers.modeling_outputs import SequenceClassifierOutput
 from transformers.models.bert.configuration_bert import BertConfig
 
+import lightning as L
+from pytorch_lightning.utilities.types import OptimizerLRScheduler
+from torchmetrics.functional import accuracy, f1_score, precision, recall
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+
+
 # TODO :https://vscode.dev/github/mhannani/sentiment_analysis/blob/main/venv/Lib/site-packages/transformers/models/bert/modeling_bert.py#L1494
 # Try to subclass the BertForSequenceClassification class and use it intead of nn.Module
 
-class CustomClassifier(nn.Module):
-    """Custom classifier for sentiment analysis"""
+
+class ClassifierHead(L.LightningModule):
+    """Classifier head for sentiment analysis"""
     
-    def __init__(self, input_size: int, hidden_size: int, num_classes: int, dropout_prob: float) -> None:
+    def __init__(self, input_dim: int, hidden_dim: int, num_classes: int, dropout_prob: float) -> None:
         """Class constructor for the custom classifier
         
         Args:
-            input_size (int): Input size of the classifier (output size of BERT pooler)
-            hidden_size (int): Hidden size of the classifier
+            input_dim (int): Input dimension of the classifier (output size of BERT pooler)
+            hidden_dim (int): Hidden dimension of the classifier
             num_classes (int): Number of output classes
             dropout_prob (float): Dropout probability
         """
-        super(CustomClassifier, self).__init__()
         
-        self.hidden_size = hidden_size
+        # call the superclass __init__ method
+        super(ClassifierHead, self).__init__()
+        
+        # hidden size
+        self.hidden_dim = hidden_dim
+        
+        # number of classes
         self.num_classes = num_classes
+        
+        # dropout probability
         self.dropout_prob = dropout_prob
         
+        # classifier head
         self.classifier = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
+            nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(hidden_size, num_classes)
+            nn.Linear(hidden_dim, num_classes),
+            nn.Softmax(dim=1)
         )
-    
+        
+        # class label order
+        self.type_labels = [0, 1, 2]
+        
+        # averaging. set to 'macro'
+        self.average = 'macro'
+
+        # save parameters
+        self.save_hyperparameters()
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass of the custom classifier
         
@@ -44,11 +70,109 @@ class CustomClassifier(nn.Module):
         Returns:
             torch.Tensor: Output tensor
         """
-        
-        self.to(x.device)
-        
+
+        # feed-forward pass
         return self.classifier(x)
     
+
+    def training_step(self, batch: torch.Tensor, batch_idx: torch.Tensor) -> torch.Tensor:
+        """
+        Single training step
+        
+        Args:
+            batch (torch.Tensor): Batch tensor
+            batch_idx (int): the batch index
+            
+        Returns:
+            torch.Tensor: the loss value
+        """
+        
+        # destruct the batch to features and targets
+        x, y = batch
+        
+        # feed-forward pass through the networ
+        y_hat = self(x)
+        
+        # compute the loss
+        loss = nn.CrossEntropyLoss()(y_hat, y)
+        
+        # logs metrics for each training_step,
+        # and the average across the epoch, to the progress bar and logger
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=False)
+        
+        return loss
+    
+    def configure_optimizers(self) -> OptimizerLRScheduler:
+        """
+        Configure ptimizer and learning-rate schedulers for the optimization.
+        
+        Return 
+        """
+
+        # configure the optimizer and return it
+        return torch.optim.Adam(self.parameters(), lr=0.001)
+
+    def _shared_eval_step(self, batch: torch.tensor, batch_idx: int) -> any:
+        """Shared eval step
+
+        Args:
+            batch (torch.tensor): The output of your data iterable.
+            batch_idx (int): The index of the batch.
+
+        Returns:
+            any: Any for now. We don't know what to do right now.
+        """
+        # destruct the batch to features and targets
+        x, y = batch
+        
+        # inferencing
+        y_hat = self(x)
+        
+        # compute the loss
+        loss = nn.CrossEntropyLoss()(y_hat, y)
+        
+        # convert torch tensors to numpy
+        y_hat_np = torch.argmax(y_hat, axis=1).cpu().numpy()
+        y_np = y.cpu().numpy()
+
+        # compute the accuracy
+        accuracy = accuracy_score(y_np, y_hat_np)
+        
+        recall = recall_score(y_np, y_hat_np, average = self.average, labels = self.type_labels)
+        
+        precision = precision_score(y_np, y_hat_np, average = self.average, labels = self.type_labels)
+        
+        f1_score_score = f1_score(y_np, y_hat_np, average = self.average, labels = self.type_labels)
+
+        return loss, accuracy, precision, recall, f1_score_score
+    
+    def test_step(self, batch: torch.tensor, batch_idx: int) -> any:
+        """Test step
+
+        Args:
+            batch (torch.tensor): The output of your data iterable.
+            batch_idx (int): The index of the batch.
+
+        Returns:
+            any: Any for now. We don't know what to do right now.
+        """
+        
+        # compute the loss and the accuract
+        loss, accuracy, precision, recall, f1_score_score = self._shared_eval_step(batch, batch_idx)
+        
+        # construc the metrics
+        metrics = {"accuracy_score": accuracy, 
+                   "precision_score": precision, 
+                   "recall_score": recall, 
+                   "f1_score_score": f1_score_score, 
+                   "test_loss": loss
+                }
+
+        # log a dictionary of values
+        self.log_dict(metrics)
+
+        return metrics
+
 
 class SentimentClassifier(nn.Module):
     """Sentiment classifier using BERT"""
