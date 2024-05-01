@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
         # training args
         training_args = TrainingArguments(
-            output_dir=f"/netscratch/mhannani/__freezed_backbone_fine_tuned_bert/{model_id}",
+            output_dir=f"/netscratch/mhannani/freezed_backbone_fine_tuned_bert/{model_id}",
             evaluation_strategy="epoch",
             do_eval=True,
             per_device_train_batch_size=batch_size,
@@ -96,8 +96,9 @@ if __name__ == "__main__":
             save_strategy = "epoch"
         )
 
+        # model
         model = AutoModelForSequenceClassification.from_pretrained(f"/netscratch/mhannani/freezed_backbone_fine_tuned_bert/{model_id}", local_files_only=True, num_labels=3)
-    
+
         # trainer
         trainer = Trainer(
             model=model,

@@ -1,0 +1,32 @@
+[data]
+root = "data"
+external = "external/MYC"
+interim = "interim/MYC"
+processed = "processed/MYC"
+raw = "raw/MAC"
+
+mac_csv_filename = "MYC_corpus.csv"
+preprocessed_mac_json = "MYC_corpus.json"
+preprocessed_mac_csv = "MYC_corpus.csv"
+
+train_csv_filename = "train.csv"
+test_csv_filename = "test.csv"
+
+[params]
+train_test_or_val_size = 0.1
+batch_size = 32
+hidden_size = 512
+dropout_prob = 0.1
+num_classes = 3
+
+golve_embeddings = ""
+
+[output]
+root = "output/MYC"
+mac_tsv_predictions = "predictions.myc.gpt3.5.tsv"
+
+[prompting]
+system_message = "Predict the class of this Arabic review (e.g ternary classification), whether it's positive (return 2), neutral (return 1) or negative (return 0) review. Please do not return anything other than that."
+gemini_system_message = "What is the sentiment of the following tweets? Answer with positive, negative, or neutral."
+
+
