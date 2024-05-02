@@ -1,4 +1,5 @@
 import re
+import emoji
 import pandas as pd
 from src.utils.readers import read_df
 
@@ -53,11 +54,17 @@ def clean_text(text: str = None) -> str:
     # Remove special characters and punctuations
     text = re.sub(r"[^\w\s]", " ", text)
 
+    # Remove HTML tags
+    text = re.sub(r"<[^>]*>", " ", text)
+    
     # Remove single characeters
     text = re.sub(r"\b[a-zA-Z]\b", " ", text)
 
-    # Remove HTML tags
-    text = re.sub(r"<[^>]*>", " ", text)
+    # Remove emojis
+    text = emoji.get_emoji_regexp().sub("", text)
+
+    # Remove Unicode characters
+    text = re.sub(r'[^\x00-\x7F]+', ' ', text)
 
     # Lowercase the text
     text = text.lower()

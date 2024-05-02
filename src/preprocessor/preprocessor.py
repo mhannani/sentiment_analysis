@@ -1,7 +1,7 @@
 import pandas as pd
-
 from pathlib import Path
 from typing import List, Union
+
 
 from src.utils.converters import df_to_list
 from src.utils.readers import read_df

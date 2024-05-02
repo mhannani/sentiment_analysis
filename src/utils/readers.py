@@ -13,7 +13,12 @@ def read_df(csv_filepath: Path, sep: str = ',') -> pd.DataFrame:
     Returns:
         pd.DataFrame: The dataframe.
     """
+    import csv
     
+    csv.field_size_limit(131072 * 10)  # You can adjust the multiplier as needed
+
+    
+    print(csv_filepath)
     return pd.read_csv(csv_filepath.as_posix(), sep = sep)
 
 def read_json(json_filepath: Path) -> List:
