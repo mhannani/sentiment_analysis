@@ -1,25 +1,23 @@
 import json
+import csv
 import pandas as pd
 from typing import List
 from pathlib import Path
 
 
-def read_df(csv_filepath: Path, sep: str = ',') -> pd.DataFrame:
+def read_df(csv_filepath: Path, sep: str = ',', encoding='utf-8') -> pd.DataFrame:
     """Read dataframe and return it.
 
     Args:
-        csv_filepath (path): csv file's absolute path
+        csv_filepath (Path): _description_
+        sep (str, optional): seperator for the row. Defaults to ','.
+        encoding (str, optional): the encoding used. Defaults to 'utf-8'.
 
     Returns:
-        pd.DataFrame: The dataframe.
+        pd.DataFrame: dataframe
     """
-    import csv
     
-    csv.field_size_limit(131072 * 10)  # You can adjust the multiplier as needed
-
-    
-    print(csv_filepath)
-    return pd.read_csv(csv_filepath.as_posix(), sep = sep)
+    return pd.read_csv(csv_filepath.as_posix(), sep = sep, encoding='utf-8')
 
 def read_json(json_filepath: Path) -> List:
     """Reads json data from file.

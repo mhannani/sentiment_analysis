@@ -1,7 +1,6 @@
 import re
 import emoji
 import pandas as pd
-from src.utils.readers import read_df
 
 
 def clean_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -51,28 +50,48 @@ def clean_text(text: str = None) -> str:
     if text is None:
         return ""
 
+    # remove <br> tag
+    text = re.sub(r"<br>", " ", text)
+
+    # Remove URLs
+    text = re.sub(r"https?://\S+", "", text)
+    
+    # Remove HTML anchor tags
+    text = re.sub(r"<a\s+[^>]*>(.*?)</a>", "", text)
+    
     # Remove special characters and punctuations
     text = re.sub(r"[^\w\s]", " ", text)
-
+    
     # Remove HTML tags
     text = re.sub(r"<[^>]*>", " ", text)
     
     # Remove single characeters
     text = re.sub(r"\b[a-zA-Z]\b", " ", text)
 
-    # Remove emojis
-    text = emoji.get_emoji_regexp().sub("", text)
-
-    # Remove Unicode characters
-    text = re.sub(r'[^\x00-\x7F]+', ' ', text)
+    # remove cammas
+    text = text.replace(',', '')
 
     # Lowercase the text
     text = text.lower()
 
     # Remove extra whitespaces
     text = re.sub(r"\s+", " ", text)
-
+    
+    # Remove emojis and replace it with a shortcut
+    text = emoji.demojize(text, language='en')
+    
     # Trim leading and trailing spaces
     text = text.strip()
 
     return text
+
+
+if __name__ == "__main__":
+    
+    text = "No comment ure the Best One ☝️ <br><br> <a href=http://www.youtube.com/results?search_query=%23Madd>#Madd</a> meZektini et en même temps tu as montré exactement ce qu’on vive au M9 lah ihsan 3wanhom Ga3 Barmo Hyathoum jwanat quand j’ai vu le clip sa m ‘a vraiment brisé le cœur d’avoir nos voisin dans cette état de drogue ... la vie sa devenu courte pr eux Sa me manque Derbna et welad homa Bezaff 😢😢😢😢 💔💔💔"
+    
+    print(text)
+    print()
+    cleaned_text = clean_text(text)
+    
+    print(cleaned_text)

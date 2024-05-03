@@ -2,11 +2,12 @@ from transformers import BertTokenizer, BertModel, AutoTokenizer, AutoModelForMa
 from typing import Tuple
 
 
-def get_model_tokenizer(model_id: str) -> Tuple:
+def get_model_tokenizer(model_id: str, only_tokenizer = True) -> Tuple:
     """Gets model and the corresponding tokenizer
 
     Args:
         model_id (str): _description_
+        only_tokenizer (bool): return only the tokenizer
 
     Returns:
         Tuple[]: _description_
@@ -29,6 +30,8 @@ def get_model_tokenizer(model_id: str) -> Tuple:
     }
     
     if model_id in model_id_mapping.keys():
+        if only_tokenizer:
+            return AutoTokenizer.from_pretrained(model_id_mapping[model_id])
         return AutoTokenizer.from_pretrained(model_id_mapping[model_id]), AutoModelForSequenceClassification.from_pretrained(model_id_mapping[model_id], num_labels=3)
 
     else:

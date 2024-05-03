@@ -29,6 +29,14 @@ warnings.filterwarnings("ignore")
 
 
 def compute_metrics(p):
+    """compute metrics
+
+    Args:
+        p (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
 
     pred, labels = p
     pred = np.argmax(pred, axis=1)
@@ -43,10 +51,10 @@ def compute_metrics(p):
 
 if __name__ == "__main__":
 
-    """Train custom BERT model"""
+    """Evaluate custom BERT model"""
 
     # configration filepath
-    CONFIG_FILE = Path("configs/config.toml")
+    CONFIG_FILE = Path("configs/myc_config.toml")
 
     # read configuration object
     config = parse_toml(CONFIG_FILE)
@@ -54,40 +62,48 @@ if __name__ == "__main__":
     # useful variables
     data_root = Path(config['data']['root'])
     processed_data = config['data']['processed']
-    test_preprocessed_mac_csv_filename = config['data']['test_csv_filename']
+    preprocessed_corpus_csv_filename = config['data']['preprocessed_corpus_csv']
     
     # batch size
     batch_size = int(config['params']['batch_size'])
 
     # preprocessed csv file
-    test_preprocessed_mac_csv = data_root / processed_data / test_preprocessed_mac_csv_filename
+    test_preprocessed_corpus_csv = data_root / processed_data / preprocessed_corpus_csv_filename
     
     # batch size
     batch_size = int(config['params']['batch_size'])
 
     # list of models to train
-    model_id_mappings = [
-        "bert-base-multilingual-cased",
-        # "bert-base-arabic", "darijabert-arabizi", "DarijaBERT", "bert-base-arabertv2",
-    ]
+    model_id_mappings = {
+        "bert-base-multilingual-cased": "bert-base-multilingual-cased/checkpoint-17185",
+        "bert-base-arabic": "bert-base-arabic/checkpoint-2946",
+        "darijabert-arabizi": "darijabert-arabizi/checkpoint-10311",
+        "DarijaBERT": "DarijaBERT/checkpoint-14239",
+        "bert-base-arabertv2": "bert-base-arabertv2/checkpoint-8347",
+    }
     
     # data splitter
-    test_df = read_df(test_preprocessed_mac_csv)
+    test_df = read_df(test_preprocessed_corpus_csv)
 
+    print(len(test_df))
     # train all models
-    for model_id in model_id_mappings:
+    for model_id in model_id_mappings.keys():
         
         print(f"\n --> Evaluating {model_id} <-- ")
 
         # get the model and the tokenizer
-        tokenizer, _ = get_model_tokenizer(model_id)
+        tokenizer = get_model_tokenizer(model_id)
 
+        print("tokenizer loaded")
         # train dataset
-        test_data = SentimentDataset(test_df, tokenizer)
+        test_data = SentimentDataset(test_df, tokenizer, train_mode=False)
 
+        # output directory for the best checlpoint
+        out_directory = f"/netscratch/mhannani/fine_tuned_bert/{model_id_mappings[model_id]}"
+        
         # training args
         training_args = TrainingArguments(
-            output_dir=f"/netscratch/mhannani/freezed_backbone_fine_tuned_bert/{model_id}",
+            output_dir=out_directory,
             evaluation_strategy="epoch",
             do_eval=True,
             per_device_train_batch_size=batch_size,
@@ -95,9 +111,9 @@ if __name__ == "__main__":
             num_train_epochs=36,
             save_strategy = "epoch"
         )
-
-        # model
-        model = AutoModelForSequenceClassification.from_pretrained(f"/netscratch/mhannani/freezed_backbone_fine_tuned_bert/{model_id}", local_files_only=True, num_labels=3)
+    
+        # model object
+        model = AutoModelForSequenceClassification.from_pretrained(out_directory, local_files_only=True, num_labels=3)
 
         # trainer
         trainer = Trainer(
@@ -110,4 +126,7 @@ if __name__ == "__main__":
 
         # train current model
         # trainer.train()
-        trainer.evaluate()
+        output = trainer.evaluate()
+        
+        # print output
+        print(output)

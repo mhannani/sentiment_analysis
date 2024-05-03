@@ -25,7 +25,7 @@ if __name__ == "__main__":
     preprocessed_corpus_csv = config['data']['preprocessed_corpus_csv']
 
     # constructing the filepath of the corpus
-    csv_filepath_raw_data = data_root / raw_data / "output_file.csv"
+    csv_filepath_raw_data = data_root / raw_data / corpus_csv_filename
 
     # json output path
     output_json_path = data_root / processed_data / preprocessed_corpus_json
