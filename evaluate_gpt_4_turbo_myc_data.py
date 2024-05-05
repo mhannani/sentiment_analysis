@@ -41,7 +41,7 @@ if __name__ == "__main__":
     output_root = Path(config['output']['root'])
     
     # preprocessed corpus json
-    preprocessed_corpus_json_path = data_root / config['data']['processed'] / f"{args.preprocessed_corp_json}.json"
+    preprocessed_corpus_json_path = data_root / config['data']['processed'] / f"{args.preprocessed_corpus_json}.json"
 
     # openai_api_key
     openai_api_key: str = os.environ.get("OPENAI_API_KEY")
@@ -68,13 +68,13 @@ if __name__ == "__main__":
             with open(output_tsv.as_posix(), 'a+', newline='', encoding='utf-8') as csv_file:
                 csv_writer = csv.writer(csv_file)
                 # Write the header row
-                csv_writer.writerow(['key', 'tweets', 'gt_type', 'pred_type', 'class_name'])
+                csv_writer.writerow(['key', 'tweets', 'gt_type', 'pred_type'])
     else:
         # Open output file for results with UTF-8 encoding
         with open(output_tsv.as_posix(), 'w+', newline='', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             # Write the header row
-            csv_writer.writerow(['key', 'tweets', 'gt_type', 'pred_type', 'class_name'])
+            csv_writer.writerow(['key', 'tweets', 'gt_type', 'pred_type'])
 
     with open(output_tsv.as_posix(), 'a+', newline='', encoding='utf-8') as csv_file:
 
@@ -92,9 +92,6 @@ if __name__ == "__main__":
 
             # type
             gt_type = sample['type']
-            
-            # class_name
-            class_name = sample['class_name']
 
             # make prediction
             output = gpt.predict(tweet)
@@ -103,7 +100,7 @@ if __name__ == "__main__":
             pred_type = output['predicted_class']
 
             # write current row
-            csv_writer.writerow([key, tweet, gt_type, pred_type, class_name])
+            csv_writer.writerow([key, tweet, gt_type, pred_type])
 
             # Ensure the data is written to the file after each iteration
             csv_file.flush()

@@ -80,7 +80,11 @@ class DataSplitter:
         """
         
         # Defining features (X) and target (y)
-        X = self.df.drop(columns=['type', 'class_name'])
+        try:
+            X = self.df.drop(columns=['type', 'class_name'], errors='ignore')
+        except:
+            pass
+
         y = self.df['type']
         
         # Get the train and test indices from the single split
@@ -113,10 +117,12 @@ class DataSplitter:
         train_df = pd.concat([X_train, y_train], axis=1)
         test_df = pd.concat([X_test, y_test], axis=1)
 
-        # Adding the 'class_name' column to train_df and test_df
-        train_df['class_name'] = self.df.loc[train_index, 'class_name']
-        test_df['class_name'] = self.df.loc[test_index, 'class_name']
-        
+        # Check if 'class_name' column exists in self.df
+        if 'class_name' in self.df.columns:
+            # Adding the 'class_name' column to train_df and test_df
+            train_df['class_name'] = self.df.loc[train_index, 'class_name']
+            test_df['class_name'] = self.df.loc[test_index, 'class_name']
+            
         return train_df, test_df
 
     def split_and_save(self, _save_json: bool = False) -> None:

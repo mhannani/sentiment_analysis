@@ -2,12 +2,13 @@ from transformers import BertTokenizer, BertModel, AutoTokenizer, AutoModelForMa
 from typing import Tuple
 
 
-def get_model_tokenizer(model_id: str, only_tokenizer = True) -> Tuple:
+def get_model_tokenizer(model_id: str, only_tokenizer = True, num_classes: int = 3) -> Tuple:
     """Gets model and the corresponding tokenizer
 
     Args:
         model_id (str): _description_
         only_tokenizer (bool): return only the tokenizer
+        num_classes (int): number of classes for the classifier head
 
     Returns:
         Tuple[]: _description_
@@ -32,7 +33,7 @@ def get_model_tokenizer(model_id: str, only_tokenizer = True) -> Tuple:
     if model_id in model_id_mapping.keys():
         if only_tokenizer:
             return AutoTokenizer.from_pretrained(model_id_mapping[model_id])
-        return AutoTokenizer.from_pretrained(model_id_mapping[model_id]), AutoModelForSequenceClassification.from_pretrained(model_id_mapping[model_id], num_labels=3)
+        return AutoTokenizer.from_pretrained(model_id_mapping[model_id]), AutoModelForSequenceClassification.from_pretrained(model_id_mapping[model_id], num_labels=num_classes)
 
     else:
         raise ValueError(f"Model ID '{model_id}' not found in the mapping. Add it or use another one")

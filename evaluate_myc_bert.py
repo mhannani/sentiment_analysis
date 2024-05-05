@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from pandas import read_csv
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 from transformers import TrainingArguments, Trainer
 from pandas import read_csv
@@ -40,12 +39,15 @@ def compute_metrics(p):
 
     pred, labels = p
     pred = np.argmax(pred, axis=1)
+    
+    # solve issue when the predicted sentence is neutral
+    pred[pred == 1] = 2
 
     accuracy = accuracy_score(y_true=labels, y_pred=pred)
     recall = recall_score(y_true=labels, y_pred=pred,average='macro')
     precision = precision_score(y_true=labels, y_pred=pred, average='macro')
     f1 = f1_score(y_true=labels, y_pred=pred, average='macro')
-      
+    
     return {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
 
 
@@ -81,11 +83,10 @@ if __name__ == "__main__":
         "DarijaBERT": "DarijaBERT/checkpoint-14239",
         "bert-base-arabertv2": "bert-base-arabertv2/checkpoint-8347",
     }
-    
+
     # data splitter
     test_df = read_df(test_preprocessed_corpus_csv)
 
-    print(len(test_df))
     # train all models
     for model_id in model_id_mappings.keys():
         
@@ -95,8 +96,8 @@ if __name__ == "__main__":
         tokenizer = get_model_tokenizer(model_id)
 
         print("tokenizer loaded")
-        # train dataset
-        test_data = SentimentDataset(test_df, tokenizer, train_mode=False)
+        # train dataset 
+        test_data = SentimentDataset(test_df, tokenizer)
 
         # output directory for the best checlpoint
         out_directory = f"/netscratch/mhannani/fine_tuned_bert/{model_id_mappings[model_id]}"
@@ -123,10 +124,9 @@ if __name__ == "__main__":
             eval_dataset = test_data,
             # callbacks=[PrintTrainLossCallback]
         )
-
-        # train current model
-        # trainer.train()
-        output = trainer.evaluate()
+        
+        # evaluate the model
+        output = trainer.evaluate(eval_dataset = test_data)
         
         # print output
         print(output)
