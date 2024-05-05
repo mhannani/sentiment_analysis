@@ -24,7 +24,7 @@ golve_embeddings = ""
 
 [output]
 root = "output/MYC"
-tsv_corpus_predictions = "predictions.myc.gpt3.5.tsv"
+tsv_corpus_predictions = "results_of_MYC_corpus.csv"
 
 [prompting]
 system_message = "Predict the class of this Arabic review (e.g binary classification), whether it's positive (return 2) or negative (return 0) review. Please do not return anything other than that."

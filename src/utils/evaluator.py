@@ -106,3 +106,30 @@ class Evaluator:
             return results
         
         return self.evaluate(self.df)
+
+
+class MYCEvaluator(Evaluator):
+    """MYC Evaluator for binary classification
+
+    Args:
+        Evaluator (Evaluator): The abstract class for Evaluating results
+    """
+    
+    def __init__(self, df: pd.DataFrame, averaging: str | None = None) -> None:
+        
+        """class constructor
+
+        Args:
+            df (pd.DataFrame): dataframe containing the evaluation results.
+
+            across_class_names (bool, optional): Whether to split the dataset and evaluate each 
+            portion (e.g Dialectical or Standard). Defaults to False.
+        """
+
+        # class the class constructor for the parent class
+        super().__init__(df = df, averaging = averaging)
+        
+        # class label order
+        self.type_labels = [0, 1]
+        
+        

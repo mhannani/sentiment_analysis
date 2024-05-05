@@ -264,6 +264,33 @@ class Visualizer:
                 plt.show()
 
 
+class MYCVisualizer(Visualizer):
+    """MYC visualizer for Binary classification
+
+    Args:
+        Visualizer (Visualizer): Sentiment Analysis results visualizer
+    """
+    
+    def __init__(self, evaluator: Evaluator) -> None:
+        """class constructor for the MYCVisualizer
+
+        Args:
+            evaluator (Evaluator): Evaluator for the MYC dataset
+        """
+        
+        # class the parent's __init__ class
+        super().__init__(evaluator)
+        
+        # Define colors for the bars
+        self.colors_type = ['lightcoral', 'lightgreen']
+        
+        # get only two colors
+        self.colors_type_class_name = self.colors_type[::len(self.colors_type)-1]
+
+        # types labels
+        self.type_labels = ['Negative', 'Positive']
+        
+        
 def visualize_frequencies(df: pd.DataFrame, column_name: str) -> None:
     """Visualize the given feature frequencies as pie chart
 
