@@ -92,3 +92,4 @@ venv
 
 fine_tuned_bert
 lightning_logs
+.cometml-runs

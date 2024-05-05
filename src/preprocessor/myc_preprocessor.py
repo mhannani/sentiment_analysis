@@ -45,7 +45,7 @@ class MYCPreprocessor(Preprocessor):
         
         # Renaming columns to avoid reserved keywords conflicts
         df.rename(columns={'sentence': 'tweets'}, inplace=True)
-        df.rename(columns={'polarity': 'class_name'}, inplace=True)
+        df.rename(columns={'polarity': 'type'}, inplace=True)
         
         
         # clean tweets column
@@ -67,12 +67,12 @@ class MYCPreprocessor(Preprocessor):
             pd.DataFrame: output dataframe
         """
         
-        # try to unify the class_name labels with other datasets
+        # try to unify the type labels with other datasets
         # class mapping for type
-        type_class_mapping = {-1: 0, 1: 2}
+        type_class_mapping = {-1: 0, 1: 1}
         
         # map classes to numerical representation
-        df['class_name'] = df['class_name'].map(type_class_mapping)
+        df['type'] = df['type'].map(type_class_mapping)
         
         return df
 

@@ -10,7 +10,8 @@ from transformers import EarlyStoppingCallback
 from pandas import read_csv
 import numpy as np
 import warnings
-
+import argparse
+import logging
 
 from src.data.sentiment_data import SentimentDataset
 from src.data.split import DataSplitter
@@ -24,7 +25,12 @@ from src.utils.get import get_model_tokenizer
 from src.models.classifier import SentimentClassifier
 
 
+# hugging face cache directory change
 os.environ["HF_HOME"] = "/netscratch/mhannani/.cashe_hg"
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Filter out UndefinedMetricWarning
 warnings.filterwarnings("ignore")
@@ -54,11 +60,25 @@ def compute_metrics(p):
 
 
 if __name__ == "__main__":
-
     """Train custom BERT model"""
 
+    # Create argument parser
+    parser = argparse.ArgumentParser(description="Script description")
+    
+    # Add argument for config file
+    parser.add_argument("config_file", type=str, help="configuration filename")
+    
+    # Add argument for config file
+    parser.add_argument("exp_name", type=str, help="experiment name")
+    
+    # training mode
+    parser.add_argument("finetune", type=bool, help="Training mode. eg. finetune (True) or pre-train(False)")
+
+    # Parse the command-line arguments
+    args = parser.parse_args()
+    
     # configration filepath
-    CONFIG_FILE = Path("configs/config.toml")
+    CONFIG_FILE = Path(f"configs/{args.config_file}.toml")
 
     # read configuration object
     config = parse_toml(CONFIG_FILE)
@@ -66,10 +86,16 @@ if __name__ == "__main__":
     # useful variables
     data_root = Path(config['data']['root'])
     processed_data = config['data']['processed']
-    preprocessed_mac_csv_filename = config['data']['preprocessed_mac_csv']
+    preprocessed_corpus_csv_filename = config['data']['preprocessed_corpus_csv']
     
     # batch size
     batch_size = int(config['params']['batch_size'])
+
+    # train epoch
+    num_epoch = int(config['params']['num_epoch'])
+
+    # number of classes
+    num_classes = int(config['params']['num_classes'])
 
     # list of models to train
     model_id_mapping = {
@@ -81,10 +107,10 @@ if __name__ == "__main__":
     }
     
     # preprocessed csv file
-    preprocessed_mac_csv = data_root / processed_data / preprocessed_mac_csv_filename
+    preprocessed_corpus_csv = data_root / processed_data / preprocessed_corpus_csv_filename
     
     # data splitter
-    data_splitter = DataSplitter(config, preprocessed_mac_csv)
+    data_splitter = DataSplitter(config, preprocessed_corpus_csv)
     
     # split data into train and val sets
     train_df, val_df = data_splitter.split()
@@ -92,33 +118,30 @@ if __name__ == "__main__":
     # train all models
     for model_id in model_id_mapping.keys():
         
-        comet_ml.init(project_name=f'freezed-backbone-fine-tuned-bert-id-{model_id}')
+        comet_ml.init(project_name=f'{args.exp_name}-id-{model_id}')
         
-        print(f"\n --> Training {model_id} <-- ")
+        print(f"\n --> Training {model_id} model-experiment {args.exp_name}-finetune-{args.finetune} <-- ")
 
         # get the model and the tokenizer
-        tokenizer, model = get_model_tokenizer(model_id)
+        tokenizer, model = get_model_tokenizer(model_id, only_tokenizer=False, num_classes=num_classes)
 
-        # customize the current model
-        model = SentimentClassifier(config, model, retrain_classifier_head=True)
-        
-        # --
-        # print("get_model_trainable_layers(model): ", get_model_trainable_layers(model))
+        # count model trainable parameters
+        model_trainable_params = get_model_trainable_layers(model)
 
         # train dataset
         train_data = SentimentDataset(train_df, tokenizer)
-        
+
         # valid dataset
         eval_data = SentimentDataset(val_df, tokenizer)
 
         # training args
         training_args = TrainingArguments(
-            output_dir=f"/netscratch/mhannani/freezed_backbone_fine_tuned_bert/{model_id}",
+            output_dir=f"/netscratch/mhannani/experiment-{args.exp_name}/{model_id}trainable_params-{model_trainable_params}",
             evaluation_strategy="epoch",
             do_eval=True,
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            num_train_epochs=36,
+            num_train_epochs=num_epoch,
             save_strategy = "epoch"
         )
     
@@ -134,4 +157,3 @@ if __name__ == "__main__":
 
         # train current model
         trainer.train()
-        # trainer.evaluate()

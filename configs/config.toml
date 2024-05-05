@@ -23,7 +23,7 @@ golve_embeddings = ""
 
 [output]
 root = "output/MAC"
-mac_tsv_predictions = "predictions.mac.gpt3.5.tsv"
+tsv_corpus_predictions = "predictions.mac.gpt.tsv"
 
 [prompting]
 system_message = "Predict the class of this Arabic review (e.g ternary classification), whether it's positive (return 2), neutral (return 1) or negative (return 0) review. Please do not return anything other than that."

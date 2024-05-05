@@ -25,4 +25,4 @@ def get_model_trainable_layers(model: nn.Module) -> List:
             # append to the list
             trainable_layers.append(name)
     
-    return trainable_layers
+    return len(trainable_layers)
