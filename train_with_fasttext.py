@@ -26,7 +26,12 @@ if __name__ == "__main__":
     # Add argument for config file
     parser.add_argument("config_file", type=str, help="configuration filename")
     
+    # Add arguement for experiment file
+    parser.add_argument("exp_name", type=str, help="experiment name")
+
     # Parse the command-line arguments
+    args = parser.parse_args()
+
     # configration filepath
     CONFIG_FILE = Path(f"configs/{args.config_file}.toml")
 
@@ -50,6 +55,7 @@ if __name__ == "__main__":
     # split data into train and val sets
     X_train, X_test, y_train, y_test = data_splitter.split(returned_as_lists = True)
     
+    print(len(X_train), len(X_test), len(y_train), len(y_test))
     # model path
     model_path = hf_hub_download(repo_id="facebook/fasttext-ar-vectors", cache_dir = CACHE_DIR, filename="model.bin")
     
@@ -89,7 +95,7 @@ if __name__ == "__main__":
     model = ClassifierHead(input_dim, hidden_dim, num_classes, dropout_prob)
     
     # Initialize the Trainer with the test dataset
-    trainer = L.Trainer(max_epochs = 100, enable_progress_bar = True)
+    trainer = L.Trainer(max_epochs = 100, enable_progress_bar = True, default_root_dir=f'fasttext_model_{args.exp_name}')
     
     # train the model
     trainer.fit(model = model, train_dataloaders = train_loader)

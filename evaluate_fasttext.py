@@ -4,6 +4,7 @@ from pathlib import Path
 import fasttext
 import torch
 from torch.utils.data import DataLoader, TensorDataset
+import argparse
 
 from src.models.classifier import ClassifierHead
 from src.utils.parsers import parse_toml
@@ -19,8 +20,20 @@ if __name__ == "__main__":
     # cache directory for FastText model
     CACHE_DIR = "/netscratch/mhannani/fasttext_models"
     
+    # Create argument parser
+    parser = argparse.ArgumentParser(description="Script description")
+    
+    # Add argument for config file
+    parser.add_argument("config_file", type=str, help="configuration filename")
+    
+    # Add arguement for experiment file
+    parser.add_argument("exp_name", type=str, help="experiment name")
+    
+    # Parse the command-line arguments
+    args = parser.parse_args()
+        
     # configration filepath
-    CONFIG_FILE = Path("configs/config.toml")
+    CONFIG_FILE = Path(f"configs/{args.config_file}.toml")
 
     # read configuration object
     config = parse_toml(CONFIG_FILE)
@@ -28,28 +41,31 @@ if __name__ == "__main__":
     # useful variables
     data_root = Path(config['data']['root'])
     processed_data = config['data']['processed']
-    test_preprocessed_mac_csv_filename = config['data']['test_csv_filename']
+    preprocessed_corpus_csv_filename = config['data']['preprocessed_corpus_csv']
     
     # batch size
     batch_size = int(config['params']['batch_size'])
 
     # preprocessed csv file
-    test_preprocessed_mac_csv = data_root / processed_data / test_preprocessed_mac_csv_filename
+    preprocessed_corpus_csv = data_root / processed_data / preprocessed_corpus_csv_filename
     
     # data splitter
-    data_splitter = DataSplitter(config, test_preprocessed_mac_csv)
+    data_splitter = DataSplitter(config, preprocessed_corpus_csv)
     
-    # get full test data
-    X_test, y_test = data_splitter.get_full_data()
+    # split data into train and val sets
+    _, X_test, _, y_test = data_splitter.split(returned_as_lists = True)
     
     print(len(X_test), len(y_test))
     
-    # model path
-    model_path = hf_hub_download(repo_id="facebook/fasttext-ar-vectors", cache_dir = CACHE_DIR, filename="model.bin")
+    # # model path
+    # model_path = hf_hub_download(repo_id="facebook/fasttext-ar-vectors", cache_dir = CACHE_DIR, filename="model.bin")
     
-    # fasttext model
-    model = fasttext.load_model(model_path)
+    # # fasttext model
+    # model = fasttext.load_model(model_path)
 
+    # classifier head
+    model = ClassifierHead.load_from_checkpoint(f"./fasttext_model_{args.exp_name}/lightning_logs/version_0/checkpoints/epoch=99-step=20200.ckpt")
+    
     # Convert text data to embeddings
     X_test_embeddings = encode_text_to_embeddings(X_test, model)
 
@@ -61,9 +77,6 @@ if __name__ == "__main__":
     test_data = TensorDataset(X_test_tensors, y_test_tensors)
     test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False)
 
-    # classifier head
-    model = ClassifierHead.load_from_checkpoint("./lightning_logs/version_0/checkpoints/epoch=99-step=49100.ckpt")
-    
     # Initialize the Trainer with the test dataset
     trainer = L.Trainer(enable_progress_bar = True)
     
