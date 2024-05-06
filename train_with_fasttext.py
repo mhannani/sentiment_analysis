@@ -26,9 +26,10 @@ if __name__ == "__main__":
     # Add argument for config file
     parser.add_argument("config_file", type=str, help="configuration filename")
     
+    # Add argument for config file
+    parser.add_argument("exp_name", type=str, help="Experiment filename")
+    
     # Parse the command-line arguments
-    args = parser.parse_args()
-
     # configration filepath
     CONFIG_FILE = Path(f"configs/{args.config_file}.toml")
 
@@ -91,7 +92,7 @@ if __name__ == "__main__":
     model = ClassifierHead(input_dim, hidden_dim, num_classes, dropout_prob)
     
     # Initialize the Trainer with the test dataset
-    trainer = L.Trainer(max_epochs = 100, enable_progress_bar = True)
+    trainer = L.Trainer(max_epochs = 100, enable_progress_bar = True, default_root_dir="/your/path/to/save/checkpoints")
     
     # train the model
     trainer.fit(model = model, train_dataloaders = train_loader)
