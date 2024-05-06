@@ -5,9 +5,9 @@ interim = "interim/MAC"
 processed = "processed/MAC"
 raw = "raw/MAC"
 
-mac_csv_filename = "MAC_corpus.csv"
-preprocessed_mac_json = "MAC_corpus.json"
-preprocessed_mac_csv = "MAC_corpus.csv"
+corpus_csv_filename = "MAC_corpus.csv"
+preprocessed_corpus_json = "MAC_corpus.json"
+preprocessed_corpus_csv = "MAC_corpus.csv"
 
 train_csv_filename = "train.csv"
 test_csv_filename = "test.csv"

@@ -3,6 +3,7 @@ import lightning as L
 from pathlib import Path
 import fasttext
 import torch
+import argparse
 from torch.utils.data import DataLoader, TensorDataset
 
 from src.models.classifier import ClassifierHead
@@ -11,16 +12,25 @@ from src.data.split import DataSplitter
 from src.utils.encoders import encode_text_to_embeddings
 
 
+# cache directory for FastText model
+CACHE_DIR = "/netscratch/mhannani/fasttext_models"
+    
 if __name__ == "__main__":
     """
     Trainig Sentiment analysis classifier using FastText embeddings
     """
 
-    # cache directory for FastText model
-    CACHE_DIR = "/netscratch/mhannani/fasttext_models"
+    # Create argument parser
+    parser = argparse.ArgumentParser(description="Script description")
     
+    # Add argument for config file
+    parser.add_argument("config_file", type=str, help="configuration filename")
+    
+    # Parse the command-line arguments
+    args = parser.parse_args()
+
     # configration filepath
-    CONFIG_FILE = Path("configs/config.toml")
+    CONFIG_FILE = Path(f"configs/{args.config_file}.toml")
 
     # read configuration object
     config = parse_toml(CONFIG_FILE)
