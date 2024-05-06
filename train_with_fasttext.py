@@ -26,6 +26,9 @@ if __name__ == "__main__":
     # Add argument for config file
     parser.add_argument("config_file", type=str, help="configuration filename")
     
+    # Add argument for config file
+    parser.add_argument("exp_name", type=str, help="Experiment name")
+    
     # Parse the command-line arguments
     args = parser.parse_args()
 
@@ -38,16 +41,16 @@ if __name__ == "__main__":
     # useful variables
     data_root = Path(config['data']['root'])
     processed_data = config['data']['processed']
-    preprocessed_mac_csv_filename = config['data']['preprocessed_mac_csv']
+    preprocessed_corpus_csv_filename = config['data']['preprocessed_corpus_csv']
     
     # batch size
     batch_size = int(config['params']['batch_size'])
 
     # preprocessed csv file
-    preprocessed_mac_csv = data_root / processed_data / preprocessed_mac_csv_filename
+    preprocessed_corpus_csv = data_root / processed_data / preprocessed_corpus_csv_filename
     
     # data splitter
-    data_splitter = DataSplitter(config, preprocessed_mac_csv)
+    data_splitter = DataSplitter(config, preprocessed_corpus_csv)
     
     # split data into train and val sets
     X_train, X_test, y_train, y_test = data_splitter.split(returned_as_lists = True)
@@ -91,7 +94,7 @@ if __name__ == "__main__":
     model = ClassifierHead(input_dim, hidden_dim, num_classes, dropout_prob)
     
     # Initialize the Trainer with the test dataset
-    trainer = L.Trainer(max_epochs = 100, enable_progress_bar = True)
+    trainer = L.Trainer(max_epochs = 100, enable_progress_bar = True, default_root_dir=f'fasttext_model_{args.exp_name}')
     
     # train the model
     trainer.fit(model = model, train_dataloaders = train_loader)
