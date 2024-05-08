@@ -36,6 +36,54 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
+def remove_duplicate_letters(text: str) -> str:
+    """Removes the duplicate letters from the given text
+
+    Args:
+        text (str): The input text
+
+    Returns:
+        str: The text with removed duplicated letters
+    """
+    # Remove duplicate letters
+    text = re.sub(r'(.)\1+', r'\1', text)
+
+    # Compact punctuations and repeated spaces
+    text = re.sub(r'([،؟!؛,.:ء]+)(?:\s*\1)+', r'\1', text)
+    
+    # matches one or more whitespace characters
+    text = re.sub(r'\s+', ' ', text)
+
+    return text
+
+def normalize_arabic_letters(text: str) -> str:
+    """Normalize similar letters in arabic language
+
+    Args:
+        text (str): The input text(to be normalized)
+
+    Returns:
+        str: The normalized text
+    """
+
+    # Define mapping of similar Arabic letters
+    similar_letters_mapping = {
+        'إ': 'ا',  # Aleph with Hamza below to Aleph
+        'أ': 'ا',  # Aleph with Hamza above to Aleph
+        'آ': 'ا',  # Aleph with Madda to Aleph
+        'ى': 'ي',  # Aleph Maksura to Ya
+    }
+
+    # Replace similar letters with their normalized forms
+    for similar_letter, normalized_letter in similar_letters_mapping.items():
+        
+        # replace the corresponding `similar_letter` with the `normalized_litter`
+        text = text.replace(similar_letter, normalized_letter)
+
+    # Replace Ta marbuta with Ha at the end of words
+    text = re.sub(r'ة\b', 'ه', text)
+
+    return text
 
 def clean_text(text: str = None) -> str:
     """clean the given text and return the cleaned version
@@ -82,6 +130,12 @@ def clean_text(text: str = None) -> str:
     
     # Trim leading and trailing spaces
     text = text.strip()
+    
+    # remove repeated letters
+    text = remove_duplicate_letters(text)
+
+    # normalize text
+    text = normalize_arabic_letters(text)
 
     return text
 
