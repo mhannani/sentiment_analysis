@@ -2,6 +2,7 @@ import re
 import emoji
 import pandas as pd
 
+# TODO https://www.worldscientific.com/doi/pdf/10.1142/S2196888821500044
 
 def clean_df(df: pd.DataFrame) -> pd.DataFrame:
     """clean the given DataFrame object and return the cleaned version.

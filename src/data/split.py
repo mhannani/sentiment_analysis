@@ -29,7 +29,7 @@ class DataSplitter:
         # processed root
         self.processed_root = self.config['data']['processed']
 
-        # read dataframe
+        # read dataFrame
         self.df = read_df(preprocessed_csv)
 
         # train_test_or_val_size
@@ -51,6 +51,15 @@ class DataSplitter:
         if missing_values.sum() > 0:
             raise Exception("Missing values found in the DataFrame")
     
+    def get_data(self) -> pd.DataFrame:
+        """Returns data as DataFrame object
+
+        Returns:
+            pd.DataFrame: Pandas dataFrame
+        """
+        
+        return self.df
+        
     def get_full_data(self) -> Tuple[List]:
         """Returns the full dataset without performing any splitting
 
@@ -69,8 +78,8 @@ class DataSplitter:
 
         return X_list, y_list
         
-    def split(self, returned_as_lists: bool = False) -> Tuple[pd.DataFrame, List]:
-        """Splits dataframe into train and test sets.
+    def split(self, returned_as_lists: bool = False) -> Tuple[Union[pd.DataFrame, List]]:
+        """Splits dataFrame into train and test sets.
 
         Args:
             returned_as_lists (bool): Returns splitted data as Tuple of Lists
