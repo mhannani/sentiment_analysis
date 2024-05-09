@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # Parse the command-line arguments
     args = parser.parse_args()
     
-    # configration filepath
+    # configuration filepath
     CONFIG_FILE = Path(f"configs/{args.config_file}.toml")
 
     # read configuration object
